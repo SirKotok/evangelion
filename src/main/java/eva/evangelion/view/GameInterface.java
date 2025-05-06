@@ -92,6 +92,10 @@ public class GameInterface {
     public List<BaseUnit> TargetList;
     public BaseUnit LastClickedUnit;
     public Sector ClickedSector;
+	//Mawrak's edits
+	public String PreviousAttack = "Basic Attack";
+	public Boolean PreserveProgress = false;
+	public Boolean TargetSelected = false;
 
     public List<String> Players;
     public List<String> SummonPlayers = new ArrayList<>();
@@ -1946,7 +1950,14 @@ public class GameInterface {
         }}});
     }
 
+public boolean isSectorEmpty(Sector sector) {
+    // Check for units
+    BaseUnit unit = getUnit(sector.x, sector.y);
+    if (unit != null) return false;
 
+    
+    return true;
+}
 
     private void createActionSubTypeButton(String name, List<EvaButton> menu, EvaMenuSubScene subScene, boolean secret) {
         EvaButton button = new EvaButton(name);
@@ -2012,16 +2023,47 @@ public class GameInterface {
                     }
 
 
-
+					
                     ResetSwap();
                     UpdateSwapLabel();
 
 
                     checkPotentialAttackEffect();
                     UpdatePlayerView();
+					
+					//Mawrak's edits
+					
+					if (name.equals("Basic Attack") || name.equals("Blitz"))// && !name.equals("Grab") !name.equals("Throw")) 
+					{
+						//if (PreviousAttack == "")
+						//{
+							
+						//	ResetArrow();
+						//	ClickedSector = null;
+						//}
+						//else if (PreviousAttack != "Basic Attack" && PreviousAttack != "Blitz")
+						if (PreviousAttack != "Basic Attack" && PreviousAttack != "Blitz")
+						{
+							ResetArrow();
+							ClickedSector = null;
+							PreserveProgress = false;
+						}
+						else
+						{
+							PreserveProgress = true;
+						}
+					
+						
+                    }
+					else
+					{
+						//Mawrak's edits
+						ResetArrow();
+						ClickedSector = null;
+						PreserveProgress = false;
+					}
 
-                    ResetArrow();
-                    ClickedSector = null;
+                   
 
 
 
@@ -2091,8 +2133,31 @@ public class GameInterface {
                     showSubScene(subScene);
                 }
             }
+			//Mawrak's edits
+			PreviousAttack = name;
+			if (PreserveProgress && ClickedUnit != null)
+				
+			
+			{
+				
+				
+				//if (TargetSelected)
+				//{
+					//TargetSelected = false;
+					//PreserveProgress= false;
+					setEndTurnButtonBasedOnAmmoAndStamina("Progress");
+				//}	
+			}
+			
             }
-        });
+        
+		
+		
+		
+		
+		
+		}
+		);
     }
 
 
@@ -4287,8 +4352,34 @@ public class GameInterface {
             s+="Item: "+TargetObject.getWeapon().Name+", ";
         }
         if (ClickedSector != null) s+="Sector: "+ClickedSector.getType().Name;
+		
+		
+		//Mawrak's edits
+		if (ClickedUnit != null && PreserveProgress) 
+		{
+			//TargetSelected = false;
+			setEndTurnButtonBasedOnAmmoAndStamina("Progress");
+			//PreserveProgress == false;
+			
+		}
+		
+		else
+			
+			{
+				
+			setEndTurnButtonBasedOnAmmoAndStamina();	
+			PreserveProgress = false;
+			}
+			
+		//else
+		//{
+			//TargetSelected = true;
+		//}
+		
         CurrentClickedLabel.setText(s);
         UpdateUnitLabels();
+		
+		
     }
 
 
