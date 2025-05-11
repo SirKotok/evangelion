@@ -2,7 +2,6 @@ package eva.evangelion.activegame;
 
 import eva.evangelion.activegame.actions.Action;
 import eva.evangelion.activegame.actions.Attack;
-import eva.evangelion.activegame.activeunits.ChazaqielSummon;
 import eva.evangelion.activegame.activeunits.Weapon;
 import eva.evangelion.activegame.activeunits.unitstate.AngelState;
 import eva.evangelion.activegame.activeunits.unitstate.ChazaqielSummonState;
@@ -21,7 +20,7 @@ public class Gamestate implements Serializable {
     public List<Weapon> Weapons;
     public String Phase;
     public int Round;
-    public int NervRespources = 5;
+    public int NervResources = 5;
     public int Fog = -1;
     public String Player;
     public Action Action;

@@ -51,9 +51,6 @@ import static eva.evangelion.gameboard.SectorType.Destroyed;
 
 //Mawrak's edits
 // Add these imports:
-import javafx.scene.control.ScrollPane;
-import javafx.geometry.Insets;
-import javafx.geometry.Pos;
 
 import javafx.geometry.Rectangle2D; // For Rectangle2D
 import javafx.stage.Screen;        // For Screen class
@@ -162,6 +159,7 @@ public class GameInterface {
     private EvaLabel CurrentRequisitionOrPenLabel = new EvaLabel("");
     private EvaLabel CurrentStamina = new EvaLabel("");
     private EvaLabel CurrentFateDoomLabel = new EvaLabel("");
+    private EvaLabel CurrentNervResources = new EvaLabel("");
     private EvaLabel CurrentEvaStatsLabel = new EvaLabel("Evangelion Stats:");
     private EvaLabel TechnologyLabel = new EvaLabel("");
     private EvaLabel TechnologySwitchLabel = new EvaLabel("");
@@ -211,6 +209,7 @@ public class GameInterface {
             CurrentWeaponProfileLabel,
             CurrentAmmoLabel,
             CurrentFateDoomLabel,
+            CurrentNervResources,
             CurrentWeaponTechnologyLabel
     );
 
@@ -1241,6 +1240,7 @@ public class GameInterface {
         CurrentRequisitionOrPenLabel.setText("Requisition: "+unit.getRequisition());
         CurrentStamina.setText("Stamina: "+unit.getStamina()+"/2");
         CurrentFateDoomLabel.setText("Fate: "+unit.state.Fate+", Doom: "+unit.state.Doom);
+        CurrentFateDoomLabel.setText("Nerv Resources: "+CurrentState.NervResources);
         CurrentATPLabel.setText("ATP: "+unit.getATP());
         CurrentWoundLevelLabel.setText("Wound Level: "+unit.getWoundLevel()+"/4");
         }
@@ -2754,9 +2754,9 @@ public class GameInterface {
             if (EndTurnButton.getText().equals("Use Resources")) {
                 System.out.println("Using "+NervResName);
                 BaseUnit Unit = getCurrentUnit();
-                CurrentState.NervRespources-=NervResCost;
+                CurrentState.NervResources -=NervResCost;
                 Unit.setStamina(Unit.getStamina()-NervResStCost);
-                System.out.println("Resources left "+ CurrentState.NervRespources);
+                System.out.println("Resources left "+ CurrentState.NervResources);
                 System.out.println("Stamine Left "+Unit.getStamina());
                 switch (NervResName){
                     case "Remote Medical" -> {
@@ -4636,7 +4636,7 @@ public class GameInterface {
 
     private void setEndTurnButtonBasedOnNervResource(String S){
         Evangelion Eva = getCurrentEvangelion();
-        if (Eva != null && Eva.getStamina() >= NervResStCost && CurrentState.NervRespources >= NervResCost)
+        if (Eva != null && Eva.getStamina() >= NervResStCost && CurrentState.NervResources >= NervResCost)
 		{
         EndTurnButton.setText(S);
 		}
@@ -4695,7 +4695,7 @@ public class GameInterface {
                 System.out.println("NervResStCost = "+NervResStCost);
                 System.out.println("NervResPlayer = "+NervResPlayer);
                 System.out.println("NervResName = "+NervResName);
-                System.out.println("Current Stamine: "+getCurrentEvangelion().getStamina() + " Current Resources: "+CurrentState.NervRespources);
+                System.out.println("Current Stamine: "+getCurrentEvangelion().getStamina() + " Current Resources: "+CurrentState.NervResources);
 
                 if (subScene != null) {
                     showSubScene(subScene);

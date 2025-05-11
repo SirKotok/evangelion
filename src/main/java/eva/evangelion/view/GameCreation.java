@@ -147,7 +147,7 @@ public class GameCreation {
 
                     AngelState angel = new AngelState("Angel11");
                     state.AngelList.add(angel);
-                    state.NervRespources += Integer.parseInt(SupplyField.getText());
+                    state.NervResources += Integer.parseInt(SupplyField.getText());
 
                     EvaManager.createNewMaker(creatorStage, field, state, false, "GM");
                 } catch (IOException | ClassNotFoundException e) {
