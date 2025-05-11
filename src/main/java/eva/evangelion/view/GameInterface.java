@@ -55,6 +55,8 @@ import static eva.evangelion.gameboard.SectorType.Destroyed;
 import javafx.geometry.Rectangle2D; // For Rectangle2D
 import javafx.stage.Screen;        // For Screen class
 
+//TODO tactical action as last turn (check for cost even when it should be free) (Mawrak)
+
 public class GameInterface {
     private Battlefield Battlefield;
     private GameBoard GameBoard;
@@ -623,7 +625,7 @@ public class GameInterface {
         HelpName.setText("");
         DefenceSubScene.getPane().getChildren().add(HelpName);
         List<EvaButton> menu = new ArrayList<>();
-
+        //TODO Defence help isnt programmed properly. It will work in game as it should, but will need to be fixed for main game. Anyone can use any powers when they shouldnt.
         EvaButton Help = createAskHelpButton("Ask Help", HelpName);
         EvaButton LimitCutButton = createNervButton("Limit Cut", menu, null, 3, 0);
         LimitCutButton.setPosition(100, 160);
@@ -665,7 +667,7 @@ public class GameInterface {
         });
         return button;
     }
-
+        //TODO fate guard button multiple stuff (Fate button can be used multiple times wasting fate) (Mawrak)
     private EvaButton createDefenceFateButton(String name){
         EvaButton button = new EvaButton(name);
         button.setPrefWidth(100);
@@ -1486,7 +1488,7 @@ public class GameInterface {
         createActionSubTypeButton("Blitz", AttackMenuButtons, null, true);
         createActionSubTypeButton("Full Auto", AttackMenuButtons, null, true);
         if (Eva.hasUpgrade("Overwatch")) createActionSubTypeButton("Overwatch", AttackMenuButtons, null, true);
-        createActionSubTypeButton("Grab", AttackMenuButtons, null, true);
+        createActionSubTypeButton("Grab", AttackMenuButtons, null, true); //TODO Grab actions dont do anything. -turn into Toss
         createActionSubTypeButton("Throw", AttackMenuButtons, null, true);
 
         createActionSubTypeButton("Run", MoveMenuButtons, null, true);
@@ -2053,7 +2055,7 @@ public class GameInterface {
                     }
 
                     CurrentSubAction = name;
-
+                    //TODO Swap between hands (Mawrak)
                     if (CurrentSubAction.equals("Hand Switch") || CurrentSubAction.equals("Wing Switch")) {
                         if (CurrentSubAction.equals("Hand Switch")) {
                             if (swapHand == null || swapHand.equals("Right Hand")) swapHand = "Left Hand"; else swapHand = "Right Hand";
@@ -3135,6 +3137,7 @@ public class GameInterface {
                                 }
                      }
                      TargetList = targetlistchanged;
+                     //TODO Throwing customisation + throwing property doesnt return weapon when defended, only when missed. (Mawrak)
                      if (Target != null && isThrow() && !((CurrentChosenWeapon.getThrowBonus() == 3) && AttackQueue.get(0).Missed())) {
                        DropWeapon(getCurrentUnit(), CurrentChosenWeapon, Target.getX(), Target.getY());
                        System.out.println("Throw attack missed");
@@ -3168,7 +3171,7 @@ public class GameInterface {
                              CurrentState.NextPlayer = CurrentPlayer;
                              CurrentState.Phase = "";
                              return true;
-                         }
+                         } //TODO Add correct Doom things - when you redirect damage to another player.
                        /*  if (getCurrentEvangelion() != null && getCurrentEvangelion().state.Doom > 1) {
                          System.out.println("The sus thing that attacks eva in range on miss");
                          if (getRandomEvaInRange(AttackQueue.get(0).AttackerX, AttackQueue.get(0).AttackerY, AttackQueue.get(0).DefenderX, AttackQueue.get(0).DefenderY) != null) {
