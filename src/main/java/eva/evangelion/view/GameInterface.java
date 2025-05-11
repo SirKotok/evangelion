@@ -622,8 +622,12 @@ public class GameInterface {
         HelpName.setPrefWidth(50);
         HelpName.setText("");
         DefenceSubScene.getPane().getChildren().add(HelpName);
+        List<EvaButton> menu = new ArrayList<>();
 
         EvaButton Help = createAskHelpButton("Ask Help", HelpName);
+        EvaButton LimitCutButton = createNervButton("Limit Cut", menu, null, 3, 0);
+        LimitCutButton.setPosition(100, 160);
+        DefenceSubScene.getPane().getChildren().add(LimitCutButton);
         DefenceSubScene.getPane().getChildren().add(Help);
         Help.setPosition(10, 40);
 
@@ -1437,7 +1441,6 @@ public class GameInterface {
         createNervButton("Remote Medical", NervMenuButtons, NervPlayerChoice, 1, 0);
         createNervButton("Eject", NervMenuButtons, NervPlayerChoice, 1, 0);
         createNervButton("Covering Fire", NervMenuButtons, null, 2, 0);
-       // createNervButton("Limit Cut", NervMenuButtons, null, 3, 0);
         createNervButton("Resupply", NervMenuButtons, NervWeaponRequisition, 2, 1);
         createNervButton("N2 Mine", NervMenuButtons, null, 4, 2);
         createNervButton("Self-Destruct", NervMenuButtons, null, 2, 2);
@@ -2762,6 +2765,10 @@ public class GameInterface {
                 switch (NervResName){
                     case "Remote Medical" -> {
                         getUnitFromPlayer(NervResPlayer).AddEffect(CommonEffects.RemoteMedical());
+                    }
+                    case "Limit Cut" -> {
+                        getUnitFromPlayer(NervResPlayer).AddEffect(CommonEffects.LimitCut());
+                        UpdateUnitLabels();
                     }
                     case "Eject" -> {
                         if (RandomGenerator.nextFloat() < 0.3f) {
@@ -4698,11 +4705,12 @@ public class GameInterface {
                 System.out.println("NervResName = "+NervResName);
                 System.out.println("Current Stamine: "+getCurrentEvangelion().getStamina() + " Current Resources: "+CurrentState.NervResources);
 
-                if (subScene != null) {
-                    showSubScene(subScene);
-					setEndTurnButtonBasedOnAmmoAndStamina();
-                } else showSubScene(amongusventedscene);
-
+                if (!name.equals("Limit Cut")) {
+                    if (subScene != null) {
+                        showSubScene(subScene);
+                        setEndTurnButtonBasedOnAmmoAndStamina();
+                    } else showSubScene(amongusventedscene);
+                }
             }
         });
         return button;

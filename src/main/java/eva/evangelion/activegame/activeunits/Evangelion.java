@@ -448,7 +448,7 @@ public class Evangelion extends BaseUnit {
         for (Weapon weapon : state.Weapons) {
             Defensive = Math.max(weapon.getDefensive(), Defensive);
         }
-        return Math.min(state.ReflexesDelta+type.ReflexesDisplay+Defensive, 65)+(getNameEffects().contains("FateDefence") ? 100 : 0);
+        return Math.min(state.ReflexesDelta+type.ReflexesDisplay+Defensive, getNameEffects().contains("Limit Cut") ? 85 : 65)+(getNameEffects().contains("FateDefence") ? 100 : 0);
     }
 
     public int getRequisition() {

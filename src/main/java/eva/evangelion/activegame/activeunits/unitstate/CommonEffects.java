@@ -124,6 +124,15 @@ public final class CommonEffects {
         return RM;
     }
 
+
+    public static StateEffect LimitCut(){
+        StateEffect LimitCut = new StateEffect("Limit Cut");
+        LimitCut.ReflexesDelta = +20;
+        LimitCut.Condition = StateEffect.ExpirationCondition.GUARD;
+        return LimitCut;
+
+    }
+
     public static StateEffect RemoteMedicalBruised(){
         StateEffect RM5 = new StateEffect("Medical5");
         RM5.ReflexesDelta = +5;
