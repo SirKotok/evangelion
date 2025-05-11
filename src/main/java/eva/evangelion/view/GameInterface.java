@@ -49,6 +49,15 @@ import java.util.*;
 import static eva.evangelion.gameboard.SectorType.Blank;
 import static eva.evangelion.gameboard.SectorType.Destroyed;
 
+//Mawrak's edits
+// Add these imports:
+import javafx.scene.control.ScrollPane;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+
+import javafx.geometry.Rectangle2D; // For Rectangle2D
+import javafx.stage.Screen;        // For Screen class
+
 public class GameInterface {
     private Battlefield Battlefield;
     private GameBoard GameBoard;
@@ -95,7 +104,6 @@ public class GameInterface {
 	//Mawrak's edits
 	public String PreviousAttack = "Basic Attack";
 	public Boolean PreserveProgress = false;
-	public Boolean TargetSelected = false;
 
     public List<String> Players;
     public List<String> SummonPlayers = new ArrayList<>();
@@ -1874,6 +1882,11 @@ public class GameInterface {
 
 
                 CurrentAction = name;
+                //Mawrak's edits
+                PreviousAttack = "Basic Attack";
+                PreserveProgress = false;
+                System.out.println("createActionTypeButton pressed");
+
                 if (name.equals("Move")) {
                     CurrentSubAction = "Run";
                 }
@@ -1950,14 +1963,7 @@ public class GameInterface {
         }}});
     }
 
-public boolean isSectorEmpty(Sector sector) {
-    // Check for units
-    BaseUnit unit = getUnit(sector.x, sector.y);
-    if (unit != null) return false;
 
-    
-    return true;
-}
 
     private void createActionSubTypeButton(String name, List<EvaButton> menu, EvaMenuSubScene subScene, boolean secret) {
         EvaButton button = new EvaButton(name);
@@ -1996,7 +2002,17 @@ public boolean isSectorEmpty(Sector sector) {
                         CurrentSubAction = "Basic Attack";
                         checkPotentialAttackEffect();
                         UpdatePlayerView();
+
+                        //Mawrak's edits
+                        ResetArrow();
+                        ClickedSector = null;
+
+
+                        System.out.println("Throw selected");
+                        PreserveProgress = false;
+                        setEndTurnButtonBasedOnAmmoAndStamina();
                         return;
+
                     }
 
                     CurrentSubAction = name;
@@ -2033,15 +2049,9 @@ public boolean isSectorEmpty(Sector sector) {
 					
 					//Mawrak's edits
 					
-					if (name.equals("Basic Attack") || name.equals("Blitz"))// && !name.equals("Grab") !name.equals("Throw")) 
+					if (name.equals("Basic Attack") || name.equals("Blitz"))
 					{
-						//if (PreviousAttack == "")
-						//{
-							
-						//	ResetArrow();
-						//	ClickedSector = null;
-						//}
-						//else if (PreviousAttack != "Basic Attack" && PreviousAttack != "Blitz")
+
 						if (PreviousAttack != "Basic Attack" && PreviousAttack != "Blitz")
 						{
 							ResetArrow();
@@ -2052,8 +2062,8 @@ public boolean isSectorEmpty(Sector sector) {
 						{
 							PreserveProgress = true;
 						}
-					
-						
+
+
                     }
 					else
 					{
@@ -2063,7 +2073,7 @@ public boolean isSectorEmpty(Sector sector) {
 						PreserveProgress = false;
 					}
 
-                   
+
 
 
 
@@ -2135,18 +2145,10 @@ public boolean isSectorEmpty(Sector sector) {
             }
 			//Mawrak's edits
 			PreviousAttack = name;
-			if (PreserveProgress && ClickedUnit != null)
-				
-			
+			if (PreserveProgress && ClickedUnit != null && !getPlayerFromUnit(ClickedUnit).equals(CurrentPlayer))
 			{
-				
-				
-				//if (TargetSelected)
-				//{
-					//TargetSelected = false;
-					//PreserveProgress= false;
+                    System.out.println("Preserve Progress");
 					setEndTurnButtonBasedOnAmmoAndStamina("Progress");
-				//}	
 			}
 			
             }
@@ -3858,7 +3860,16 @@ public boolean isSectorEmpty(Sector sector) {
                     ClickedUpdate();
                     if (CurrentUnit != null){
                         WeaponCheck();
-                    if (ClickedUnit != null && ClickedUnit.equals(CurrentUnit)) {
+                    if (ClickedUnit != null && ClickedUnit.equals(CurrentUnit))
+                    {
+                        //Mawrak's edits
+                        if (CurrentAction.equals("Attack"))
+                        {
+                            PreserveProgress = false;
+                            setEndTurnButtonBasedOnAmmoAndStamina();
+                        }
+
+                        System.out.println("Self target.");
                         Update();
                         return;
                     }
@@ -3951,8 +3962,8 @@ public boolean isSectorEmpty(Sector sector) {
                         arrow.SetColor(Color.BLACK);
                     }
                     else if (CurrentChosenWeapon != null && CurrentChosenWeapon.isWeapon() && CurrentAction.equals("AtkOfOp")
-                            && ClickedUnit != null && (CurrentState.Action instanceof Movement movement && ClickedUnit.getPlayerName()
-                            .equals(movement.UnitActor))) {
+                    && ClickedUnit != null && (CurrentState.Action instanceof Movement movement && ClickedUnit.getPlayerName().equals(movement.UnitActor)))
+                    {
                         checkPotentialAttackEffect();
                         if (CurrentChosenWeapon.getArea() > -1) {
                             EndTurnButton.setText("No Area");
@@ -3971,9 +3982,11 @@ public boolean isSectorEmpty(Sector sector) {
                         Target = ClickedUnit;
                     }
                     else if (CurrentChosenWeapon != null && CurrentChosenWeapon.isWeapon() && CurrentAction.equals("Attack")
-                            && ClickedUnit != null && !(getCurrentUnit().UsedAttack()) && !CurrentChosenWeapon.getLine()
-                            && (getCurrentUnit().getStamina() > 0) && CurrentChosenWeapon.getArea() < 0 &&
-                            GameBoard.isPossibleReachLocation(ClickedSector, CurrentUnit, CurrentUnit.getMaxRange(CurrentChosenWeapon))) {
+                    && ClickedUnit != null && !(getCurrentUnit().UsedAttack()) && !CurrentChosenWeapon.getLine()
+                    && (getCurrentUnit().getStamina() > 0) && CurrentChosenWeapon.getArea() < 0 &&
+                    GameBoard.isPossibleReachLocation(ClickedSector, CurrentUnit, CurrentUnit.getMaxRange(CurrentChosenWeapon)))
+                    {
+                        System.out.println("attack select 1");
                             setEndTurnButtonBasedOnAmmoAndStamina("Progress");
                             checkPotentialAttackEffect();
                             TargetList = new ArrayList<>();
@@ -3982,11 +3995,14 @@ public boolean isSectorEmpty(Sector sector) {
                             drawArrow(getXFromBoard(CurrentUnit.getX()), getYFromBoard(CurrentUnit.getY()), getXFromBoard(sector.x), getYFromBoard(sector.y));
                             arrow.SetColor(Color.RED);
                             Target = ClickedUnit;
-                        } else if (CurrentChosenWeapon != null && CurrentChosenWeapon.isWeapon() && (getCurrentUnit().getStamina() > 0) && CurrentAction.equals("Attack") && !(getCurrentUnit().UsedAttack()) && CurrentChosenWeapon.getArea() > -1 &&
-                        GameBoard.isPossibleReachLocation(ClickedSector, CurrentUnit, CurrentUnit.getMaxRange(CurrentChosenWeapon))) {
-                        setEndTurnButtonBasedOnAmmoAndStamina("Progress");
+                        }
+                    else if (CurrentChosenWeapon != null && CurrentChosenWeapon.isWeapon() && (getCurrentUnit().getStamina() > 0) && CurrentAction.equals("Attack") && !(getCurrentUnit().UsedAttack()) && CurrentChosenWeapon.getArea() > -1 &&
+                    GameBoard.isPossibleReachLocation(ClickedSector, CurrentUnit, CurrentUnit.getMaxRange(CurrentChosenWeapon)))
+                        {
+                            System.out.println("attack select 2");
+                            setEndTurnButtonBasedOnAmmoAndStamina("Progress");
                             checkPotentialAttackEffect();
-                        BlowUpSectorList = new ArrayList<>();
+                            BlowUpSectorList = new ArrayList<>();
                             if (arrow == null) arrow = new Arrow(viewport);
                             drawArrow(getXFromBoard(CurrentUnit.getX()), getYFromBoard(CurrentUnit.getY()), getXFromBoard(sector.x), getYFromBoard(sector.y));
                             arrow.SetColor(Color.RED);
@@ -3995,8 +4011,10 @@ public boolean isSectorEmpty(Sector sector) {
                             ShowAreaAttack();
                         }
                     else if (CurrentChosenWeapon != null && CurrentChosenWeapon.isWeapon() && (getCurrentUnit().getStamina() > 0) && CurrentAction.equals("Attack")
-                            && !(getCurrentUnit().UsedAttack()) && CurrentChosenWeapon.getLine() &&
-                            GameBoard.isPossibleLineReachLocation(ClickedSector, CurrentUnit, CurrentUnit.getMaxRange(CurrentChosenWeapon))) {
+                    && !(getCurrentUnit().UsedAttack()) && CurrentChosenWeapon.getLine() &&
+                    GameBoard.isPossibleLineReachLocation(ClickedSector, CurrentUnit, CurrentUnit.getMaxRange(CurrentChosenWeapon)))
+                    {
+                        System.out.println("attack select 3");
                         setEndTurnButtonBasedOnAmmoAndStamina("Progress");
                         checkPotentialAttackEffect();
                         BlowUpSectorList = new ArrayList<>();
@@ -4020,9 +4038,21 @@ public boolean isSectorEmpty(Sector sector) {
                        // GameBoard.ShowPossibleAttackRange(CurrentUnit, CurrentChosenWeapon);
                         ShowLineAttack(unitX, unitY, endX, endY, dxStep, dyStep);
                     }
-                    else if (CurrentAction.equals("ProgressAttack")) {
+                    //Mawrak's edits
+                    else if (CurrentAction.equals("Attack"))
+                        {
+                            System.out.println("attack select 4 no target");
+                            setEndTurnButtonBasedOnAmmoAndStamina();
+                            ResetArrow();
+                            ClickedSector = null;
+                            PreserveProgress = false;
+                        }
 
-                    } else Update();
+                    else if (CurrentAction.equals("ProgressAttack"))
+                    {
+
+                    }
+                    else Update();
 
                     }
                 }
@@ -4352,29 +4382,9 @@ public boolean isSectorEmpty(Sector sector) {
             s+="Item: "+TargetObject.getWeapon().Name+", ";
         }
         if (ClickedSector != null) s+="Sector: "+ClickedSector.getType().Name;
-		
-		
-		//Mawrak's edits
-		if (ClickedUnit != null && PreserveProgress) 
-		{
-			//TargetSelected = false;
-			setEndTurnButtonBasedOnAmmoAndStamina("Progress");
-			//PreserveProgress == false;
-			
-		}
-		
-		else
-			
-			{
-				
-			setEndTurnButtonBasedOnAmmoAndStamina();	
-			PreserveProgress = false;
-			}
-			
-		//else
-		//{
-			//TargetSelected = true;
-		//}
+
+
+
 		
         CurrentClickedLabel.setText(s);
         UpdateUnitLabels();
@@ -4425,9 +4435,32 @@ public boolean isSectorEmpty(Sector sector) {
 
     private void initializeStage() {
         gamePane = new AnchorPane();
+
+        //Mawrak's edits
+
+		//ScrollPane scrollPane = new ScrollPane(gamePane); // Wrap in ScrollPane
+		//scrollPane.setFitToWidth(true);
+		//scrollPane.setFitToHeight(true);
+
         gameScene = new Scene(gamePane, WIDTH, HEIGHT);
+        //gameScene = new Scene(scrollPane, WIDTH, HEIGHT); // this is to enable scrolling, but currently it is completely broken so no
         gameStage = new Stage();
         gameStage.setScene(gameScene);
+
+
+		// Center the window on the primary screen
+        gameStage.centerOnScreen();
+
+    // Ensure the window stays within screen bounds
+        gameStage.setOnShown(event -> {
+        Rectangle2D screenBounds = Screen.getPrimary().getVisualBounds();
+        double x = Math.max(0, Math.min(gameStage.getX(), screenBounds.getMaxX() - gameStage.getWidth()));
+        double y = Math.max(0, Math.min(gameStage.getY(), screenBounds.getMaxY() - gameStage.getHeight()));
+        gameStage.setX(x);
+        gameStage.setY(y);
+    });
+
+
     }
 
 
