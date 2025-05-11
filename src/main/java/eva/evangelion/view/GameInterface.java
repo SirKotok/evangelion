@@ -1963,6 +1963,7 @@ public class GameInterface {
                     CurrentAction = "SetUp";
                     CurrentSubAction = name;
                     Weapon w = EvaSaveUtil.ReadStringWeapon(name);
+					//Mawrak's Edits
                     if (!eva.getSetUpLocationShortString().equals("storage") && w.getCost() > eva.getRequisition()) EndTurnButton.setText("Too Expensive");
 					else if (eva.getSetUpLocationShortString().equals("storage") && (w.getCost()-1) > eva.getRequisition()) EndTurnButton.setText("Too Expensive");
                     else if (eva.getSetUpLocationShortString().equals("Left") && !eva.getLeftWing().isSiegeFrame() && w.getHands() == 2 && !eva.getRightHandItem().isFree()) EndTurnButton.setText("No Hand");
