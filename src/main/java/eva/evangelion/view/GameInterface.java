@@ -2758,6 +2758,9 @@ public class GameInterface {
                 System.out.println("Resources left "+ CurrentState.NervRespources);
                 System.out.println("Stamine Left "+Unit.getStamina());
                 switch (NervResName){
+                    case "Remote Medical" -> {
+                        getUnitFromPlayer(NervResPlayer).AddEffect(CommonEffects.RemoteMedical());
+                    }
                     case "Eject" -> {
                         if (RandomGenerator.nextFloat() < 0.3f) {
                             System.out.println("Bruised");
@@ -2778,6 +2781,10 @@ public class GameInterface {
                         createWeaponObject(weapon, ClickedSector.x, ClickedSector.y);
                         eva.setRequisition(eva.getRequisition()-weapon.getCost());
                         CurrentState.NextPlayer = CurrentPlayer;
+                        return true;
+                    }
+                    case "N2 Mine", "Self-Destruct" -> {
+                        CurrentState.NextPlayer = "GM";
                         return true;
                     }
                 }
@@ -4691,7 +4698,7 @@ public class GameInterface {
 
                 if (subScene != null) {
                     showSubScene(subScene);
-                }
+                } else showSubScene(amongusventedscene);
 
             }
         });

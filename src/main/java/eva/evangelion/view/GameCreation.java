@@ -10,6 +10,7 @@ import eva.evangelion.view.evainterface.EvaMenuSubScene;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.Scene;
+import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.Stage;
@@ -49,7 +50,7 @@ public class GameCreation {
         creatorStage.setScene(creatorScene);
     }
 
-
+    TextField SupplyField = new TextField("0");
 
 
 
@@ -62,9 +63,17 @@ public class GameCreation {
         FateList = new ArrayList<>();
         PlayerChoiceList = new ArrayList<>();
 
-
+        Label Supplylabel = new Label("Supply: ");
+        Supplylabel.setLayoutX(265);
+        Supplylabel.setLayoutY(5);
+        SupplyField.setLayoutY(35);
+        SupplyField.setLayoutX(265);
+        creatorPane.getChildren().add(SupplyField);
+        creatorPane.getChildren().add(Supplylabel);
 
         EvaTypeList = new ArrayList<>();
+
+
 
         File folder2 = new File(filepath+"/Evangelions");
         File[] listOfFiles2 = folder2.listFiles();
@@ -138,6 +147,7 @@ public class GameCreation {
 
                     AngelState angel = new AngelState("Angel11");
                     state.AngelList.add(angel);
+                    state.NervRespources += Integer.parseInt(SupplyField.getText());
 
                     EvaManager.createNewMaker(creatorStage, field, state, false, "GM");
                 } catch (IOException | ClassNotFoundException e) {

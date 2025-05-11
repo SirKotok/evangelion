@@ -151,11 +151,15 @@ public class BaseState  implements Serializable {
         // Step 2: Process duplicates and Bruised/Wounded conversion
         Map<String, StateEffect> effectMap = new HashMap<>();
         int bruisedCount = 0;
+        boolean medical = false;
         int reflexesbonus = 0;
 
         // First pass to count bruises and collect other unique effects
         for (StateEffect effect : unpackedEffects) {
-            if ("Bruised".equals(effect.Name)) {
+            if ("Medical0".equals(effect.Name) || "Medical5".equals(effect.Name) || "Medical8".equals(effect.Name)) {
+                medical = true;
+            }
+            else if ("Bruised".equals(effect.Name)) {
                 bruisedCount++;
             } else if ("RunBonus".equals((effect.Name)) || "Defend".equals((effect.Name)) || "RunDefend".equals((effect.Name))) {
                reflexesbonus = Math.max(reflexesbonus, effect.ReflexesDelta);
@@ -167,12 +171,20 @@ public class BaseState  implements Serializable {
         }
 
         // Handle Bruised -> Wounded conversion
-        if (bruisedCount == 1) {
+        if (bruisedCount == 1 && !effectMap.containsKey("Wounded")) {
             effectMap.putIfAbsent("Bruised", CommonEffects.Bruised());
         }
         if (bruisedCount >= 2 && !effectMap.containsKey("Wounded")) {
             effectMap.put("Wounded", CommonEffects.Wounded());
         }
+
+        // remote medical
+        if (medical) {
+            if (effectMap.containsKey("Bruised"))  effectMap.putIfAbsent("Medical5", CommonEffects.RemoteMedicalBruised());
+            else if (effectMap.containsKey("Wounded"))  effectMap.putIfAbsent("Medical8", CommonEffects.RemoteMedicalWounded());
+            else effectMap.putIfAbsent("Medical0", CommonEffects.RemoteMedical());
+        }
+
         if (reflexesbonus > 0) {
             effectMap.putIfAbsent("RunDefend", CommonEffects.RunDefend(reflexesbonus));
         }

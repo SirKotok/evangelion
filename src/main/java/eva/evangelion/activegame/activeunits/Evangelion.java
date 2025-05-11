@@ -107,6 +107,7 @@ public class Evangelion extends BaseUnit {
 
     public void AddEffect(StateEffect effect) {
         state.StateEffects.add(effect);
+
         UpdateCalc();
     }
     public List<StateEffect> getEffects(){

@@ -118,6 +118,27 @@ public final class CommonEffects {
         wounded.AccuracyDelta = -15;
         return wounded;
     }
+
+    public static StateEffect RemoteMedical(){
+        StateEffect RM = new StateEffect("Medical0");
+        return RM;
+    }
+
+    public static StateEffect RemoteMedicalBruised(){
+        StateEffect RM5 = new StateEffect("Medical5");
+        RM5.ReflexesDelta = +5;
+        RM5.AccuracyDelta = +5;
+        return RM5;
+    }
+
+    public static StateEffect RemoteMedicalWounded(){
+        StateEffect RM3 = new StateEffect("Medical8");
+        RM3.ReflexesDelta = +8;
+        RM3.AccuracyDelta = +8;
+        return RM3;
+    }
+
+
     public static StateEffect EWMinorHead(){
         StateEffect wound = new StateEffect("Minor Head Wound");
         wound.Description = "The Eva’s optics burst open in a spray of blood and viscera. You cannot use the Aim Action.";
