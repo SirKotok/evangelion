@@ -2742,6 +2742,26 @@ public class GameInterface {
                 CurrentState.NextPlayer = CurrentPlayer;
                 return true;
             }
+            if (EndTurnButton.getText().equals("Use Resources")) {
+                BaseUnit Unit = getCurrentUnit();
+                CurrentState.NervRespources-=NervResCost;
+                Unit.setStamina(Unit.getStamina()-NervResStCost);
+                switch (NervResName){
+                    case "Eject" -> {
+                        if (RandomGenerator.nextFloat() < 0.3f) {
+                        getUnitFromPlayer(NervResPlayer).AddEffect(CommonEffects.Bruised()); }
+                        discard(getUnitFromPlayer(NervResPlayer));
+                        if (getCurrentUnit() == null) {
+                            return true;
+                        }
+                    }
+                }
+                ResetAction();
+                UpdatePlayerView();
+                UpdateCurrentLables();
+                CurrentState.NextPlayer = CurrentPlayer;
+                return true;
+            }
             if (EndTurnButton.getText().equals("Reload")) {
                 Evangelion Unit = getCurrentEvangelion();
                 if (Unit != null) {
@@ -4571,7 +4591,7 @@ public class GameInterface {
 		{
         EndTurnButton.setText(S);
 		}
-		else if (Eva.getStamina() >= NervResStCost) 
+		else if (Eva.getStamina() < NervResStCost)
 		{
 			EndTurnButton.setText("No Stamina");
         } 
@@ -4595,7 +4615,7 @@ public class GameInterface {
                 NervResPlayer = name;
                 NervResStCost = 1;
 
-                setEndTurnButtonBasedOnNervResource("Use Nerv");
+                setEndTurnButtonBasedOnNervResource("Use Resources");
 
                 System.out.println("NervResCost = "+NervResCost);
                 System.out.println("NervResStCost = "+NervResStCost);
@@ -4617,12 +4637,13 @@ public class GameInterface {
                 NervResStCost = stcost;
                 NervResName = name;
 
-                setEndTurnButtonBasedOnNervResource("Use Nerv");
-
+                setEndTurnButtonBasedOnNervResource("Use Resources");
+                System.out.println("NEW NERV:");
                 System.out.println("NervResCost = "+NervResCost);
                 System.out.println("NervResStCost = "+NervResStCost);
                 System.out.println("NervResPlayer = "+NervResPlayer);
                 System.out.println("NervResName = "+NervResName);
+                System.out.println("Current Stamine: "+getCurrentEvangelion().getStamina() + " Current Resources: "+CurrentState.NervRespources);
 
                 if (subScene != null) {
                     showSubScene(subScene);
