@@ -4568,8 +4568,16 @@ public class GameInterface {
     private void setEndTurnButtonBasedOnNervResource(String S){
         Evangelion Eva = getCurrentEvangelion();
         if (Eva != null && Eva.getStamina() >= NervResStCost && CurrentState.NervRespources >= NervResCost)
-        EndTurnButton.setText(S); else if (Eva.getStamina() >= NervResStCost) {EndTurnButton.setText("No Stamina");
-        } else {EndTurnButton.setText("No Nerv Resources");}
+		{
+        EndTurnButton.setText(S);
+		}
+		else if (Eva.getStamina() >= NervResStCost) 
+		{
+			EndTurnButton.setText("No Stamina");
+        } 
+		else {
+			EndTurnButton.setText("No Nerv Resources");
+		}
     }
 
     public EvaButton StandartButton(String name, List<EvaButton> menu) {
