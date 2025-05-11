@@ -4663,7 +4663,7 @@ public class GameInterface {
             public void handle(ActionEvent event) {
 
                 NervResPlayer = name;
-                NervResStCost = 1;
+                NervResStCost = getPlayerFromUnit(getCurrentUnit()).equals(NervResName) ? 0 : 1;
 
                 setEndTurnButtonBasedOnNervResource("Use Resources");
 
@@ -4688,7 +4688,7 @@ public class GameInterface {
                 NervResCost = cost;
                 NervResStCost = stcost;
                 NervResName = name;
-
+                CurrentSubAction = "";
                 setEndTurnButtonBasedOnNervResource("Use Resources");
                 System.out.println("NEW NERV:");
                 System.out.println("NervResCost = "+NervResCost);
