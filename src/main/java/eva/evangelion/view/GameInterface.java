@@ -3015,11 +3015,13 @@ public class GameInterface {
                          if (TechnologyLabel.getText().equals("Current debuff: -10 to next Attack Test")) OnHitEffect.add(CommonEffects.NextAttackPenalty(-10));
                          else OnHitEffect.add(CommonEffects.NextGuardPenalty(-10));
                      }
+                     //area check
+                     boolean area = false;
                      if (Target != null) {
                          System.out.println("Target != null");
                          TargetList = new ArrayList<>();
                          TargetList.add(Target);
-                     }
+                     } else area = true;
                      List<Attack> AttackQueue = new ArrayList<>();
                      List<BaseUnit> targetlistchanged = new ArrayList<>();
                      for (BaseUnit attacktarget : TargetList) {
@@ -3064,7 +3066,7 @@ public class GameInterface {
 
                         for (BaseUnit unit : TargetList) {
                             // Fix for the miss issue
-                        if (!AttackQueue.get(TargetList.indexOf(unit)).Missed()) {
+                        if (!AttackQueue.get(TargetList.indexOf(unit)).Missed() || area) {
                         System.out.println("Adding player "+getPlayerFromUnit(unit)+" to gamequeue");
                         CurrentState.GameQueueList.add(getPlayerFromUnit(unit)); }
                         }
