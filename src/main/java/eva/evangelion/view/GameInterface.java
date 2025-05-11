@@ -3061,6 +3061,7 @@ public class GameInterface {
                         CurrentAttack = AttackQueue.get(0);
                         CurrentState.Action = CurrentAttack;
                         CurrentState.AttackQueueList = AttackQueue;
+
                         for (BaseUnit unit : TargetList) {
                             // Fix for the miss issue
                         if (!AttackQueue.get(TargetList.indexOf(unit)).Missed()) {
