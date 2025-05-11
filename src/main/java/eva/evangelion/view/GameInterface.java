@@ -1888,7 +1888,7 @@ public class GameInterface {
                 //Mawrak's edits
                 PreviousAttack = "Basic Attack";
                 PreserveProgress = false;
-                System.out.println("createActionTypeButton pressed");
+                System.out.println("ActionTypeButton \""+name+"\" pressed");
 
                 if (name.equals("Move")) {
                     CurrentSubAction = "Run";
@@ -3000,6 +3000,7 @@ public class GameInterface {
             }
             case "ProgressAttack" -> {
                  if (!AttackRollCanUse && !AttackTestRollCanUse) {
+                     System.out.println("Attack start");
                      BaseUnit AttackingUnit = getCurrentUnit();
                      assert AttackingUnit != null;
                      int pen = AttackingUnit.getPenetration();
@@ -3010,6 +3011,7 @@ public class GameInterface {
                      List<StateEffect> OnHitEffect = new ArrayList<>();
                      if (CurrentAction.equals("Basic Attack") && AttackingUnit.hasUpgrade("Overwatch")) OnHitEffect.add(CommonEffects.NextAttackPenaltyStackable(-10));
                      if (CurrentChosenWeapon.isSuperconductive()) {
+                         System.out.println("Superconductive check");
                          if (TechnologyLabel.getText().equals("Current debuff: -10 to next Attack Test")) OnHitEffect.add(CommonEffects.NextAttackPenalty(-10));
                          else OnHitEffect.add(CommonEffects.NextGuardPenalty(-10));
                      }
@@ -3026,7 +3028,7 @@ public class GameInterface {
                                  Integer.parseInt(AttackRollLabel.getText()), AttackingUnit.getX(),
                                  AttackingUnit.getY(), attacktarget.getX(), attacktarget.getY(),
                                  CurrentChosenWeapon.getPenetration()+pen, CurrentChosenWeapon, OnHitEffect);
-
+                         System.out.println("Attack: at = "+NextAttack.Attacker+" def = "+NextAttack.Defender+" missed ="+NextAttack.Missed());
                          if (attacktarget instanceof ChazaqielSummon) {
                                     if (Target == null || !NextAttack.Missed()) {
                                         discard(attacktarget);
@@ -3037,12 +3039,13 @@ public class GameInterface {
                                 else {
                                 AttackQueue.add(NextAttack);
                                 targetlistchanged.add(attacktarget);
-                                System.out.println("Target defending ");
+                                System.out.println("Added to queue");
                                 }
                      }
                      TargetList = targetlistchanged;
                      if (Target != null && isThrow() && !((CurrentChosenWeapon.getThrowBonus() == 3) && AttackQueue.get(0).Missed())) {
                        DropWeapon(getCurrentUnit(), CurrentChosenWeapon, Target.getX(), Target.getY());
+                       System.out.println("Throw attack missed");
                      }
                      AttackingUnit.WeaponSpecificTickEffect(CurrentChosenWeapon);
                      AttackingUnit.AttackTickEffect();
@@ -3050,23 +3053,31 @@ public class GameInterface {
                          CurrentChosenWeapon.Overheat(false);
                          AttackingUnit.AddEffect(AttackingUnit instanceof Evangelion ? CommonEffects.DamagePenaltyWeaponUse(-2, CurrentChosenWeapon) : CommonEffects.DamagePenaltyRound(-2));
                          UpdateCurrentLables();
+                         System.out.println("Overheating check");
                      }
                         BlowUpArea();
                         if (!AttackQueue.isEmpty()) {
+                        System.out.println("Attack queue is empty");
                         CurrentAttack = AttackQueue.get(0);
                         CurrentState.Action = CurrentAttack;
                         CurrentState.AttackQueueList = AttackQueue;
                         for (BaseUnit unit : TargetList) {
-                        CurrentState.GameQueueList.add(getPlayerFromUnit(unit));
+                            // Fix for the miss issue
+                        if (!AttackQueue.get(TargetList.indexOf(unit)).Missed()) {
+                        System.out.println("Adding player "+getPlayerFromUnit(unit)+" to gamequeue");
+                        CurrentState.GameQueueList.add(getPlayerFromUnit(unit)); }
                         }
                         System.out.println("Queue sizes, Attack: "+CurrentState.AttackQueueList.size()+" player: "+CurrentState.GameQueueList.size());
                      if (AttackQueue.get(0).Missed() && Target != null) {
+                         System.out.println("attack missed and target not null");
                          if (CurrentPlayerIsGM()) {
+                             System.out.println("missed and current = gm, set next player to current");
                              CurrentState.NextPlayer = CurrentPlayer;
                              CurrentState.Phase = "";
                              return true;
                          }
-                         if (getCurrentEvangelion() != null && getCurrentEvangelion().state.Doom > 1) {
+                       /*  if (getCurrentEvangelion() != null && getCurrentEvangelion().state.Doom > 1) {
+                         System.out.println("The sus thing that attacks eva in range on miss");
                          if (getRandomEvaInRange(AttackQueue.get(0).AttackerX, AttackQueue.get(0).AttackerY, AttackQueue.get(0).DefenderX, AttackQueue.get(0).DefenderY) != null) {
                              Evangelion eva = getRandomEvaInRange(AttackQueue.get(0).AttackerX, AttackQueue.get(0).AttackerY, AttackQueue.get(0).DefenderX, AttackQueue.get(0).DefenderY);
                              Attack NextAttack = new Attack(CurrentPlayer, getPlayerFromUnit(eva),
@@ -3086,14 +3097,17 @@ public class GameInterface {
                              CurrentState.Phase = "Defend";
                              return true;
                          }
-                         }
+                         } */
+                         System.out.println("Set next player to current player");
                          CurrentState.NextPlayer = CurrentPlayer;
                          CurrentState.Phase = "";
                          return true;
                      } else {
+                         System.out.println("Set next player to defender");
                      CurrentState.NextPlayer = CurrentAttack.Defender;
                      CurrentState.Phase = "Defend";
                      }
+
                      return true; } else {
                             System.out.println("END ATTACK");
                             CurrentState.NextPlayer = CurrentPlayer;
