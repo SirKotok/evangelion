@@ -2078,7 +2078,7 @@ public class GameInterface {
 					
 					//Mawrak's edits
 					
-					if (name.equals("Basic Attack") || name.equals("Blitz"))
+					if ((name.equals("Basic Attack") || name.equals("Blitz")) && !CurrentChosenWeapon.getLine() && CurrentChosenWeapon.getArea() <= -1)
 					{
 
 						if (PreviousAttack != "Basic Attack" && PreviousAttack != "Blitz")
