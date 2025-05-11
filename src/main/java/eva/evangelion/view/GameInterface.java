@@ -1372,6 +1372,7 @@ public class GameInterface {
 
 
     private EvaMenuSubScene amongusventedscene = new EvaMenuSubScene(6, 40, SizeDelta);
+
     private EvaMenuSubScene createMovesSubScene(Evangelion Eva) {
         List<EvaButton> EvangelionsMenuButtons = new ArrayList<>();
         EvaMenuSubScene ActionsSubScene = new EvaMenuSubScene(4, 40, SizeDelta);
@@ -1382,13 +1383,17 @@ public class GameInterface {
         EvaMenuSubScene OtherActions = new EvaMenuSubScene(5, 40, SizeDelta);
         EvaMenuSubScene AttackActions = new EvaMenuSubScene(5, 40, SizeDelta);
         EvaMenuSubScene MovementActions = new EvaMenuSubScene(5, 40, SizeDelta);
+
+        EvaMenuSubScene NervActions = new EvaMenuSubScene(5, 40, SizeDelta);
+        EvaMenuSubScene NervPlayerChoice = new EvaMenuSubScene(6, 40, SizeDelta);
         // Sir Kotok's new thing
         AttackActionsSubSceneList.add(AttackActions);
 
         gamePane.getChildren().add(OtherActions);
         gamePane.getChildren().add(AttackActions);
         gamePane.getChildren().add(MovementActions);
-
+        gamePane.getChildren().add(NervActions);
+        gamePane.getChildren().add(NervPlayerChoice);
 
         EvaMenuSubScene SimpleAction = new EvaMenuSubScene(6, 40, SizeDelta);
 
@@ -1398,6 +1403,11 @@ public class GameInterface {
         List<EvaButton> WeaponRequisitionMenuButtons = new ArrayList<>();
         for (String s : WeaponsNamesList) {
             createActionSubTypeButton(s, WeaponRequisitionMenuButtons, null, false);
+        }
+
+        List<EvaButton> NervPlayerMenuButtons = new ArrayList<>();
+        for (EvangelionState EvaInitial : CurrentState.EvaList) {
+            createNervPlayerButton(EvaInitial.PlayerName, NervPlayerMenuButtons);
         }
 
 
@@ -1411,11 +1421,21 @@ public class GameInterface {
         createActionTypeButton("Other", EvangelionsMenuButtons, OtherActions);
         createActionTypeButton("Attack", EvangelionsMenuButtons, AttackActions);
         createActionTypeButton("Move", EvangelionsMenuButtons, MovementActions);
-
+        createActionTypeButton("Nerv Resource", EvangelionsMenuButtons, NervActions);
 
         List<EvaButton> OtherMenuButtons = new ArrayList<>();
         List<EvaButton> AttackMenuButtons = new ArrayList<>();
         List<EvaButton> MoveMenuButtons = new ArrayList<>();
+        List<EvaButton> NervMenuButtons = new ArrayList<>();
+
+        createNervButton("Remote Medical", NervMenuButtons, NervPlayerChoice, 1, 0);
+        createNervButton("Eject", NervMenuButtons, NervPlayerChoice, 1, 0);
+        createNervButton("Covering Fire", NervMenuButtons, null, 2, 0);
+        createNervButton("Limit Cut", NervMenuButtons, null, 3, 0);
+        createNervButton("Resupply", NervMenuButtons, null, 2, 1);
+        createNervButton("N2 Mine", NervMenuButtons, null, 4, 2);
+        createNervButton("Self-Destruct", NervMenuButtons, null, 2, 2);
+
 
 
 
@@ -1481,6 +1501,9 @@ public class GameInterface {
         EvangelionsMenuButtons.add(switchbutton);
 
         SetUpMenuList(ActionsSubScene.getPane(), EvangelionsMenuButtons, 5, 0);
+
+        SetUpMenuList(NervActions.getPane(), NervMenuButtons, 5, 0);
+        SetUpMenuList(NervPlayerChoice.getPane(), NervPlayerMenuButtons, 5, 0);
 
         SetUpMenuList(OtherActions.getPane(),OtherMenuButtons, 5, 0);
         SetUpMenuList(AttackActions.getPane(), AttackMenuButtons, 5, 0);
@@ -4537,7 +4560,70 @@ public class GameInterface {
         sceneToHide = newlist;
     }
 
+    public int NervResCost = 0;
+    public int NervResStCost = 0;
+    public String NervResPlayer = "";
+    public String NervResName = "";
 
+    private void setEndTurnButtonBasedOnNervResource(String S){
+        Evangelion Eva = getCurrentEvangelion();
+        if (Eva != null && Eva.getStamina() >= NervResStCost && CurrentState.NervRespources >= NervResCost)
+        EndTurnButton.setText(S); else if (Eva.getStamina() >= NervResStCost) {EndTurnButton.setText("No Stamina");
+        } else {EndTurnButton.setText("No Nerv Resources");}
+    }
+
+    public EvaButton StandartButton(String name, List<EvaButton> menu) {
+        EvaButton button = new EvaButton(name);
+        button.setPrefHeight(30);
+        menu.add(button);
+        return button;
+    }
+
+    private EvaButton createNervPlayerButton(String name, List<EvaButton> menu) {
+        EvaButton button = StandartButton(name, menu);
+        button.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                NervResPlayer = name;
+                NervResStCost = 1;
+
+                setEndTurnButtonBasedOnNervResource("Use Nerv");
+
+                System.out.println("NervResCost = "+NervResCost);
+                System.out.println("NervResStCost = "+NervResStCost);
+                System.out.println("NervResPlayer = "+NervResPlayer);
+                System.out.println("NervResName = "+NervResName);
+            }
+        });
+        return button;
+    }
+
+
+    private EvaButton createNervButton(String name, List<EvaButton> menu, EvaMenuSubScene subScene, int cost, int stcost) {
+        EvaButton button = StandartButton(name, menu);
+        button.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                NervResPlayer = getPlayerFromUnit(getCurrentUnit());
+                NervResCost = cost;
+                NervResStCost = stcost;
+                NervResName = name;
+
+                setEndTurnButtonBasedOnNervResource("Use Nerv");
+
+                System.out.println("NervResCost = "+NervResCost);
+                System.out.println("NervResStCost = "+NervResStCost);
+                System.out.println("NervResPlayer = "+NervResPlayer);
+                System.out.println("NervResName = "+NervResName);
+
+                if (subScene != null) {
+                    showSubScene(subScene);
+                }
+
+            }
+        });
+        return button;
+    }
 
 
 }
