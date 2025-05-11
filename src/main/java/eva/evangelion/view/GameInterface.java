@@ -132,6 +132,7 @@ public class GameInterface {
     private  EvaLabel EvaStatsLabel = new EvaLabel("Evangelion Stats:");
 
     private WeaponObject TargetObject;
+    public List<EvaMenuSubScene> AttackActionsSubSceneList = new ArrayList<>();
 
     private int SizeDelta = 20;
     private EvaButton TechnologyButton;
@@ -1369,6 +1370,7 @@ public class GameInterface {
     }
 
 
+
     private EvaMenuSubScene amongusventedscene = new EvaMenuSubScene(6, 40, SizeDelta);
     private EvaMenuSubScene createMovesSubScene(Evangelion Eva) {
         List<EvaButton> EvangelionsMenuButtons = new ArrayList<>();
@@ -1380,7 +1382,8 @@ public class GameInterface {
         EvaMenuSubScene OtherActions = new EvaMenuSubScene(5, 40, SizeDelta);
         EvaMenuSubScene AttackActions = new EvaMenuSubScene(5, 40, SizeDelta);
         EvaMenuSubScene MovementActions = new EvaMenuSubScene(5, 40, SizeDelta);
-
+        // Sir Kotok's new thing
+        AttackActionsSubSceneList.add(AttackActions);
 
         gamePane.getChildren().add(OtherActions);
         gamePane.getChildren().add(AttackActions);
@@ -2783,6 +2786,10 @@ public class GameInterface {
                 CurrentAction = "Attack";
                 EndTurnButton.setText("Progress");
                 ApplyPlayer();
+                // getting correct subscene
+                if (Unit instanceof Evangelion) {
+                    showSubScene(AttackActionsSubSceneList.get(EvangelionList.indexOf(Unit)));
+                }
                 Unit.SetUsedAttack(false);
                 if (CurrentChosenWeapon.temptech && Unit instanceof Evangelion eva) eva.SetUsedAngelicCore(false);
                 return false;
