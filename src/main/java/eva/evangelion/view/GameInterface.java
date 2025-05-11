@@ -2907,6 +2907,8 @@ public class GameInterface {
                 }
                 if (CurrentSubAction.equals("Take Cover")) {
                     Eva.AddEffect(CommonEffects.Cover());
+                    // Cover fix
+                    if (CurrentMovement.Cost > 1) Eva.AddEffect(CommonEffects.RunBonus());
                 }
                 boolean AOO = false;
                 if (!IgnoreAtkOfOp) {
