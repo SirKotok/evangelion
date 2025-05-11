@@ -171,6 +171,9 @@ public class GameInterface {
     private StateEffect ReducedWound = null;
     private List<EvaLabel> statLabels;
     public int FogNumber = -1;
+
+    public boolean IgnoreAtkOfOp = false;
+
     private TextField GMEffectName = new TextField("Effect");
     private TextField GMFog = new TextField("-1");
     private TextField GMDamage = new TextField("0");
@@ -2359,11 +2362,13 @@ public class GameInterface {
         if (end) {
             if (act) {
             if (getCurrentUnit() != null && !(getCurrentUnit() instanceof ChazaqielSummon)) {
-            if (getCurrentUnit().getStamina() > 0 && getCurrentUnit().isTurnDone() && !getCurrentUnit().getProhibitedActions().contains("Defend"))
-            {
-                getCurrentUnit().AddEffect(CommonEffects.DefendEffect());
+            if (getCurrentUnit().isTurnDone()) {
+                if (getCurrentUnit().getStamina() > 0 && !getCurrentUnit().getProhibitedActions().contains("Defend")) {
+                    getCurrentUnit().AddEffect(CommonEffects.DefendEffect());
+                }
                 getCurrentUnit().ConditionTickEffect(StateEffect.ExpirationCondition.TURN);
                 getCurrentUnit().ConditionTickEffect(StateEffect.ExpirationCondition.INTERVAL);
+                IgnoreAtkOfOp = false;
             }
             } else {
                 CurrentPlayer = "GM";
@@ -2743,17 +2748,26 @@ public class GameInterface {
                 return true;
             }
             if (EndTurnButton.getText().equals("Use Resources")) {
+                System.out.println("Using "+NervResName);
                 BaseUnit Unit = getCurrentUnit();
                 CurrentState.NervRespources-=NervResCost;
                 Unit.setStamina(Unit.getStamina()-NervResStCost);
+                System.out.println("Resources left "+ CurrentState.NervRespources);
+                System.out.println("Stamine Left "+Unit.getStamina());
                 switch (NervResName){
                     case "Eject" -> {
                         if (RandomGenerator.nextFloat() < 0.3f) {
+                            System.out.println("Bruised");
                         getUnitFromPlayer(NervResPlayer).AddEffect(CommonEffects.Bruised()); }
                         discard(getUnitFromPlayer(NervResPlayer));
+                        System.out.println("Ejected");
                         if (getCurrentUnit() == null) {
                             return true;
                         }
+                    }
+                    case "Covering Fire" -> {
+                        IgnoreAtkOfOp = true;
+                        System.out.println("Covering Fire active");
                     }
                 }
                 ResetAction();
@@ -2799,6 +2813,7 @@ public class GameInterface {
                 Eva.ConditionTickEffect(StateEffect.ExpirationCondition.STAND);
                 CurrentMovement = new Movement(getPlayerFromUnit(Eva), Eva.getX(), Eva.getY(), Eva.getX(), Eva.getY(), 0);
                 boolean AOO = false;
+                if (!IgnoreAtkOfOp){
                 for (BaseUnit unit : UnitsList) {
                     if (!unit.equals(Eva) && EvaCalculationUtil.isAdjecent(CurrentMovement.StartX, CurrentMovement.StartY, unit.getX(), unit.getY())) {
                         CurrentState.GameQueueList.add(getPlayerFromUnit(unit));
@@ -2806,6 +2821,7 @@ public class GameInterface {
                         CurrentState.Action = CurrentMovement;
                         AOO = true;
                     }
+                }
                 }
                 if (AOO) {
                     CurrentState.NextPlayer = CurrentState.GameQueueList.get(0);
@@ -2866,6 +2882,7 @@ public class GameInterface {
                     Eva.AddEffect(CommonEffects.Cover());
                 }
                 boolean AOO = false;
+                if (!IgnoreAtkOfOp) {
                 for (BaseUnit unit : UnitsList) {
                     if (!unit.equals(Eva) && !(unit instanceof ChazaqielSummon) && EvaCalculationUtil.isAdjecent(CurrentMovement.StartX, CurrentMovement.StartY, unit.getX(), unit.getY())
                             && !CurrentSubAction.equals("Maneuver")) {
@@ -2874,6 +2891,7 @@ public class GameInterface {
                         CurrentState.Action = CurrentMovement;
                         AOO = true;
                     }
+                }
                 }
                 if (AOO) {
                     CurrentState.NextPlayer = CurrentState.GameQueueList.get(0);
