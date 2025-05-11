@@ -1399,13 +1399,15 @@ public class GameInterface {
         gamePane.getChildren().add(NervPlayerChoice);
 
         EvaMenuSubScene SimpleAction = new EvaMenuSubScene(6, 40, SizeDelta);
-
+        EvaMenuSubScene NervWeaponRequisition = new EvaMenuSubScene(6, 40, SizeDelta);
         EvaMenuSubScene WeaponRequisition = new EvaMenuSubScene(6, 40, SizeDelta);
         EvaMenuSubScene WingInteraction = new EvaMenuSubScene(6, 40, SizeDelta);
 
         List<EvaButton> WeaponRequisitionMenuButtons = new ArrayList<>();
+        List<EvaButton> NervWeaponRequisitionMenuButtons = new ArrayList<>();
         for (String s : WeaponsNamesList) {
             createActionSubTypeButton(s, WeaponRequisitionMenuButtons, null, false);
+            createNervWeaponButton(s, NervWeaponRequisitionMenuButtons);
         }
 
         List<EvaButton> NervPlayerMenuButtons = new ArrayList<>();
@@ -1417,6 +1419,7 @@ public class GameInterface {
 
         gamePane.getChildren().add(SimpleAction);
         gamePane.getChildren().add(WeaponRequisition);
+        gamePane.getChildren().add(NervWeaponRequisition);
         gamePane.getChildren().add(WingInteraction);
 
 
@@ -1434,8 +1437,8 @@ public class GameInterface {
         createNervButton("Remote Medical", NervMenuButtons, NervPlayerChoice, 1, 0);
         createNervButton("Eject", NervMenuButtons, NervPlayerChoice, 1, 0);
         createNervButton("Covering Fire", NervMenuButtons, null, 2, 0);
-        createNervButton("Limit Cut", NervMenuButtons, null, 3, 0);
-        createNervButton("Resupply", NervMenuButtons, null, 2, 1);
+       // createNervButton("Limit Cut", NervMenuButtons, null, 3, 0);
+        createNervButton("Resupply", NervMenuButtons, NervWeaponRequisition, 2, 1);
         createNervButton("N2 Mine", NervMenuButtons, null, 4, 2);
         createNervButton("Self-Destruct", NervMenuButtons, null, 2, 2);
 
@@ -1512,7 +1515,7 @@ public class GameInterface {
         SetUpMenuList(AttackActions.getPane(), AttackMenuButtons, 5, 0);
         SetUpMenuList(MovementActions.getPane(), MoveMenuButtons, 5, 0);
 
-
+        SetUpMenuList(NervWeaponRequisition.getPane(), NervWeaponRequisitionMenuButtons, 5, 0);
         SetUpMenuList(WeaponRequisition.getPane(), WeaponRequisitionMenuButtons, 5, 0);
         SetUpMenuList(SimpleAction.getPane(), SimpleActionMenu, 5, 0);
 
@@ -2768,6 +2771,14 @@ public class GameInterface {
                     case "Covering Fire" -> {
                         IgnoreAtkOfOp = true;
                         System.out.println("Covering Fire active");
+                    }
+                    case "Resupply" -> {
+                        Evangelion eva = (Evangelion) Unit;
+                        Weapon weapon = EvaSaveUtil.ReadWeapon(filepath+"/Weapons/"+CurrentSubAction+".txt");
+                        createWeaponObject(weapon, ClickedSector.x, ClickedSector.y);
+                        eva.setRequisition(eva.getRequisition()-weapon.getCost());
+                        CurrentState.NextPlayer = CurrentPlayer;
+                        return true;
                     }
                 }
                 ResetAction();
@@ -4034,6 +4045,18 @@ public class GameInterface {
                                 } else EndTurnButton.setText("Too Expensive");
                                 } catch (IOException ignored) {}
                     }
+                    } else if (CurrentAction.equals("NervWeapon")) {
+                        if (WeaponsNamesList.contains(CurrentSubAction)) {
+                            try {
+                                Weapon weapon = EvaSaveUtil.ReadWeapon(filepath+"/Weapons/"+CurrentSubAction+".txt");
+                                if (weapon.getCost() <= ((Evangelion) getCurrentUnit()).getRequisition()) {
+                                    ResetArrow();
+                                    UpdatePlayerView();
+                                    setEndTurnButtonBasedOnNervResource("Use Resources");
+                                    GameBoard.DrawSquare(ClickedSector, 0, Color.YELLOW);
+                                } else EndTurnButton.setText("Too Expensive");
+                            } catch (IOException ignored) {}
+                        }
                     }
                     else if (CurrentAction.equals("Move") && ClickedUnit == null && CurrentUnit.getStamina() > 0 &&
                             ((CurrentSubAction.equals("Take Cover") && GameBoard.CoverCheck(ClickedSector)) || (CurrentSubAction.equals("Maneuver") && GameBoard.isPossibleReachLocation(ClickedSector, CurrentUnit, 1))
@@ -4630,6 +4653,7 @@ public class GameInterface {
         button.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
+
                 NervResPlayer = name;
                 NervResStCost = 1;
 
@@ -4650,6 +4674,8 @@ public class GameInterface {
         button.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
+                ResetArrow();
+                UpdatePlayerView();
                 NervResPlayer = getPlayerFromUnit(getCurrentUnit());
                 NervResCost = cost;
                 NervResStCost = stcost;
@@ -4671,7 +4697,33 @@ public class GameInterface {
         });
         return button;
     }
-
+    private EvaButton createNervWeaponButton(String name, List<EvaButton> menu) {
+        EvaButton button = StandartButton(name, menu);
+        button.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                CurrentAction = "NervWeapon";
+                CurrentSubAction = name;
+                Evangelion Eva = getCurrentEvangelion();
+                if (ClickedSector == null) {
+                ClickedSector = GameBoard.getSector(Eva.getX(), Eva.getY());
+                ClickedUpdate();
+                }
+                if (WeaponsNamesList.contains(CurrentSubAction)) {
+                    try {
+                        Weapon weapon = EvaSaveUtil.ReadWeapon(filepath+"/Weapons/"+CurrentSubAction+".txt");
+                        if (weapon.getCost() <= ((Evangelion) getCurrentUnit()).getRequisition()) {
+                            ResetArrow();
+                            UpdatePlayerView();
+                            setEndTurnButtonBasedOnNervResource("Use Resources");
+                            GameBoard.DrawSquare(ClickedSector, 0, Color.YELLOW);
+                        } else EndTurnButton.setText("Too Expensive");
+                    } catch (IOException ignored) {}
+                }
+            }
+        });
+        return button;
+    }
 
 }
 
