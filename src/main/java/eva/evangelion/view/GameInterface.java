@@ -55,7 +55,6 @@ import static eva.evangelion.gameboard.SectorType.Destroyed;
 import javafx.geometry.Rectangle2D; // For Rectangle2D
 import javafx.stage.Screen;        // For Screen class
 
-//TODO tactical action as last turn (check for cost even when it should be free) (Mawrak)
 
 public class GameInterface {
     private Battlefield Battlefield;
@@ -667,8 +666,13 @@ public class GameInterface {
         });
         return button;
     }
+        //Mawrak's edits
         //TODO fate guard button multiple stuff (Fate button can be used multiple times wasting fate) (Mawrak)
     private EvaButton createDefenceFateButton(String name){
+        Evangelion Unit2 = getCurrentEvangelion();
+
+        if (Unit2 != null && Unit2.state.Fate > 0)
+        {
         EvaButton button = new EvaButton(name);
         button.setPrefWidth(100);
         button.setPrefHeight(30);
@@ -684,11 +688,26 @@ public class GameInterface {
                         Unit.AddEffect(bonus);
                         Unit.state.Fate--;
                         UpdateUnitLabels();
+						//Mawrak's edits
+						// Remove button from its parent container
+                        if (button.getParent() instanceof Pane)
+                        {
+                            ((Pane) button.getParent()).getChildren().remove(button);
+                        }
+
                     }
                 }
             }
         });
-        return button;
+        return button;}
+        else
+            {
+                EvaButton button = new EvaButton("No more fate");
+                button.setPrefWidth(100);
+                button.setPrefHeight(30);
+                return button;
+            }
+
     }
 
     private EvaButton createEnablerButton(String name){
@@ -1145,8 +1164,20 @@ public class GameInterface {
         int cost = 1;
         if (isBlitzOrFA() || CurrentSubAction.equals("Overwatch")) cost = 2;
         if (ATPower != null) cost = ATPower.StaminaCost;
+		
+		
+		//BaseUnit unit = getCurrentUnit();
+		//if (unit != null && isTacticalAction() && !unit.UsedTactical()) 
+		//{
+		//	cost = 0;
+		//}
+		
         CurrentAttackStaminaCost = cost;
     }
+	
+	
+	
+	
     private int getAmmoCost() {
         AmmoCostRecalculate();
         return CurrentAttackAmmoCost;
@@ -2065,7 +2096,8 @@ public class GameInterface {
                             swapWing = getCurrentEvangelion().NextWingForSwap(swapWing);
                             CurrentSubAction = "Swap";
                         }
-                        if (!getCurrentUnit().UsedTactical() || getCurrentUnit().getStamina() > 0) {
+                        if (!getCurrentUnit().UsedTactical() || getCurrentUnit().getStamina() > 0) 
+						{
                         if (swapHand != null && swapWing != null) {
                             EndTurnButton.setText("Swap");
                             Evangelion eva = getCurrentEvangelion();
@@ -2232,10 +2264,16 @@ public class GameInterface {
             }
             if (CurrentChosenWeapon.isATPower() && getCurrentUnit().getATP() == 0) EndTurnButton.setText("No ATP");
             if (!CurrentChosenWeapon.canAttackAmmo(ammo)) EndTurnButton.setText("No Ammo");
+			//Mawrak's edits - TODO tactical action as last turn (check for cost even when it should be free) (Mawrak)
+			//else if ((S == "Swap" || S == "Pick Up" || S == "Drop") && !getCurrentUnit().UsedTactical()) EndTurnButton.setText(S);
             else if (getStaminaCost() > getCurrentUnit().getStamina()) EndTurnButton.setText("No Stamina");
             else EndTurnButton.setText(S);
         } else EndTurnButton.setText(S);
     }
+	
+	//Swap") || 
+    //       CurrentSubAction.equals("Pick Up
+	
     private int debug = 0;
     private EvaButton createDebugButton(String name) {
         EvaButton button = new EvaButton(name);
@@ -3138,7 +3176,8 @@ public class GameInterface {
                      }
                      TargetList = targetlistchanged;
                      //TODO Throwing customisation + throwing property doesnt return weapon when defended, only when missed. (Mawrak)
-                     if (Target != null && isThrow() && !((CurrentChosenWeapon.getThrowBonus() == 3) && AttackQueue.get(0).Missed())) {
+                     if (Target != null && isThrow() && !((CurrentChosenWeapon.getThrowBonus() == 3) && AttackQueue.get(0).Missed())) 
+					 {
                        DropWeapon(getCurrentUnit(), CurrentChosenWeapon, Target.getX(), Target.getY());
                        System.out.println("Throw attack missed");
                      }
