@@ -612,19 +612,14 @@ public class GameInterface {
         DefenceSubScene.getPane().getChildren().add(Guard);
         Guard.setPosition(100, 40);
 
-        EvaLabel DefenseLayeredFieldLabel = new EvaLabel("Use ATP to gain 3 armor");
-        DefenceSubScene.getPane().getChildren().add(DefenseLayeredFieldLabel);
 
         EvaButton LayeredField = createLayeredFieldButton("Layered Field");
         DefenceSubScene.getPane().getChildren().add(LayeredField);
-        DefenseLayeredFieldLabel.SetPosition(100, 80);
-        LayeredField.setPosition(100, 100);
 
-        EvaLabel DefenseFateLabel = new EvaLabel("Use Fate to automatically succeed");
-        DefenceSubScene.getPane().getChildren().add(DefenseFateLabel);
+        LayeredField.setPosition(100, 80);
+
         DefenceSubScene.getPane().getChildren().add(DefenceFateButton);
-        DefenseFateLabel.SetPosition(100, 140);
-        DefenceFateButton.setPosition(100, 160);
+        DefenceFateButton.setPosition(100, 120);
 
 
         HelpName.setLayoutX(10);
@@ -635,7 +630,7 @@ public class GameInterface {
         List<EvaButton> menu = new ArrayList<>();
 
         EvaButton LimitCutButton = createNervButton("Limit Cut", menu, null, 3, 0,"Use 3 Resources for +20 Reflexes; 50% to get Bruised");
-        LimitCutButton.setPosition(100, 190);
+        LimitCutButton.setPosition(100, 140);
         DefenceSubScene.getPane().getChildren().add(LimitCutButton);
 
         //TODO Defence help isnt programmed properly. It will work in game as it should, but will need to be fixed for main game. Anyone can use any powers when they shouldnt.
@@ -684,6 +679,7 @@ public class GameInterface {
 
     private EvaButton createDefenceFateButton(String name) {
         EvaButton button = new EvaButton(name);
+        button.Explain("Use 1 Fate to automatically succeed the defence roll.");
         button.setPrefWidth(100);
         button.setPrefHeight(30);
         button.setOnAction(new EventHandler<ActionEvent>() {
@@ -1059,6 +1055,7 @@ public class GameInterface {
     }
     private EvaButton createLayeredFieldButton(String name){
         EvaButton button = new EvaButton(name);
+        button.Explain("On press consume ATP to gain 3 armor");
         button.setPrefWidth(80);
         button.setPrefHeight(30);
         button.setOnAction(new EventHandler<ActionEvent>() {
