@@ -21,8 +21,8 @@ import java.util.Scanner;
 
 public final class EvaSaveUtil {
 
-    public static String savepath = "C:\\Users\\2\\Desktop\\EvangelionJava";
-    public static String savegamepath = "C:\\Users\\2\\Desktop\\EvangelionJava\\EvaBox\\Dropbox\\";
+    public static String savepath = "C:\\Users\\katya\\Desktop\\GameEva";
+    public static String savegamepath = "C:\\Users\\katya\\Desktop\\GameEva\\EvaBox\\Dropbox\\";
     public static String getFilepath() throws IOException {
         return getSavepath().replace("\\", "/");
     }

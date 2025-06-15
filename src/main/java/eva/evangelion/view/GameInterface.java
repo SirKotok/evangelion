@@ -595,9 +595,10 @@ public class GameInterface {
         SwitchEdgeButton.setPosition(100, 40);
         SwitchEdgeButton.setPosition(100, 70);
     }
-
+    // Edit: made button usable in other places
+    EvaButton DefenceFateButton = createDefenceFateButton("Use Fate");
     private void createDefenceSubScene() {
-        DefenceSubScene = new DisplaySubSpace(560, 40, 400, 200,SizeDelta);
+        DefenceSubScene = new DisplaySubSpace(560, 40, 400, 300,SizeDelta);
         gamePane.getChildren().add(DefenceSubScene);
         DefenceLabel.SetPosition(50,0);
 
@@ -609,13 +610,19 @@ public class GameInterface {
         DefenceSubScene.getPane().getChildren().add(Guard);
         Guard.setPosition(100, 40);
 
+        EvaLabel DefenseLayeredFieldLabel = new EvaLabel("Use ATP to gain 3 armor");
+        DefenceSubScene.getPane().getChildren().add(DefenseLayeredFieldLabel);
+
         EvaButton LayeredField = createLayeredFieldButton("Layered Field");
         DefenceSubScene.getPane().getChildren().add(LayeredField);
-        LayeredField.setPosition(100, 80);
+        DefenseLayeredFieldLabel.SetPosition(100, 80);
+        LayeredField.setPosition(100, 100);
 
-        EvaButton Fate = createDefenceFateButton("Use Fate");
-        DefenceSubScene.getPane().getChildren().add(Fate);
-        Fate.setPosition(100, 120);
+        EvaLabel DefenseFateLabel = new EvaLabel("Use Fate to automatically succeed");
+        DefenceSubScene.getPane().getChildren().add(DefenseFateLabel);
+        DefenceSubScene.getPane().getChildren().add(DefenceFateButton);
+        DefenseFateLabel.SetPosition(100, 140);
+        DefenceFateButton.setPosition(100, 160);
 
 
         HelpName.setLayoutX(10);
@@ -624,13 +631,19 @@ public class GameInterface {
         HelpName.setText("");
         DefenceSubScene.getPane().getChildren().add(HelpName);
         List<EvaButton> menu = new ArrayList<>();
-        //TODO Defence help isnt programmed properly. It will work in game as it should, but will need to be fixed for main game. Anyone can use any powers when they shouldnt.
-        EvaButton Help = createAskHelpButton("Ask Help", HelpName);
+
         EvaButton LimitCutButton = createNervButton("Limit Cut", menu, null, 3, 0);
-        LimitCutButton.setPosition(100, 160);
+        LimitCutButton.setPosition(100, 210);
+        EvaLabel DefenseLimitCutLabel = new EvaLabel("Use 3 Resources for +20 Reflexes; 50% to get Bruised");
+        DefenceSubScene.getPane().getChildren().add(DefenseLimitCutLabel);
+        DefenseLimitCutLabel.SetPosition(100, 190);
         DefenceSubScene.getPane().getChildren().add(LimitCutButton);
+
+        //TODO Defence help isnt programmed properly. It will work in game as it should, but will need to be fixed for main game. Anyone can use any powers when they shouldnt.
+        //RESULT: Doesnt come up in session 1 fight. Doesnt matter for now.
+        /* EvaButton Help = createAskHelpButton("Ask Help", HelpName);
         DefenceSubScene.getPane().getChildren().add(Help);
-        Help.setPosition(10, 40);
+        Help.setPosition(10, 40); */
 
         DefenceSubScene.getPane().getChildren().add(DefenceLabel);
         DefenceSubScene.getPane().getChildren().add(DefenceTestRollLabel);
@@ -667,48 +680,43 @@ public class GameInterface {
         return button;
     }
         //Mawrak's edits
-        //TODO fate guard button multiple stuff (Fate button can be used multiple times wasting fate) (Mawrak)
-    private EvaButton createDefenceFateButton(String name){
-        Evangelion Unit2 = getCurrentEvangelion();
+        //fate guard button multiple stuff (Fate button can be used multiple times wasting fate) (Mawrak)
+        // The button changes text and becomes unavaliable after first use
 
-        if (Unit2 != null && Unit2.state.Fate > 0)
-        {
+    private EvaButton createDefenceFateButton(String name) {
         EvaButton button = new EvaButton(name);
         button.setPrefWidth(100);
         button.setPrefHeight(30);
         button.setOnAction(new EventHandler<ActionEvent>() {
             @Override
-            public void handle(ActionEvent event){
+            public void handle(ActionEvent event) {
                 Evangelion Unit = getCurrentEvangelion();
                 if (Unit != null) {
+                    if (!Unit.getNameEffects().contains("FateDefence")) {
                     if (Unit.state.Fate > 0) {
-                        Unit.SetUsedGuard(false);
+                        DefenceTestRollLabel.setText("0");
+                        Unit.SetUsedGuard(true);
                         StateEffect bonus = new StateEffect("FateDefence");
                         bonus.Condition = StateEffect.ExpirationCondition.POTENTIAL;
                         Unit.AddEffect(bonus);
                         Unit.state.Fate--;
                         UpdateUnitLabels();
-						//Mawrak's edits
-						// Remove button from its parent container
-                        if (button.getParent() instanceof Pane)
-                        {
-                            ((Pane) button.getParent()).getChildren().remove(button);
-                        }
-
+                        button.setText("Fate Used");
+                        System.out.println("Used fate, remaining: "+Unit.state.Fate);
+                    } else {
+                        button.setText("No Fate");
+                        System.out.println("Attempted to use fate, no fate");
+                    }
+                    } else {
+                        button.setText("Fate Used");
+                        System.out.println("Attempted to use fate, fate already used");
                     }
                 }
             }
         });
-        return button;}
-        else
-            {
-                EvaButton button = new EvaButton("No more fate");
-                button.setPrefWidth(100);
-                button.setPrefHeight(30);
-                return button;
-            }
-
+        return button;
     }
+
 
     private EvaButton createEnablerButton(String name){
         EvaButton button = new EvaButton(name);
@@ -1277,7 +1285,7 @@ public class GameInterface {
         CurrentRequisitionOrPenLabel.setText("Requisition: "+unit.getRequisition());
         CurrentStamina.setText("Stamina: "+unit.getStamina()+"/2");
         CurrentFateDoomLabel.setText("Fate: "+unit.state.Fate+", Doom: "+unit.state.Doom);
-        CurrentFateDoomLabel.setText("Nerv Resources: "+CurrentState.NervResources);
+        CurrentNervResources.setText("Nerv Resources: "+CurrentState.NervResources);
         CurrentATPLabel.setText("ATP: "+unit.getATP());
         CurrentWoundLevelLabel.setText("Wound Level: "+unit.getWoundLevel()+"/4");
         }
@@ -1519,7 +1527,8 @@ public class GameInterface {
         createActionSubTypeButton("Blitz", AttackMenuButtons, null, true);
         createActionSubTypeButton("Full Auto", AttackMenuButtons, null, true);
         if (Eva.hasUpgrade("Overwatch")) createActionSubTypeButton("Overwatch", AttackMenuButtons, null, true);
-        createActionSubTypeButton("Grab", AttackMenuButtons, null, true); //TODO Grab actions dont do anything. -turn into Toss
+        createActionSubTypeButton("Grab", AttackMenuButtons, null, true);
+        //TODO Grab actions dont do anything. -turn into Toss
         createActionSubTypeButton("Throw", AttackMenuButtons, null, true);
 
         createActionSubTypeButton("Run", MoveMenuButtons, null, true);
@@ -1572,11 +1581,11 @@ public class GameInterface {
         createActionTypeButton("Move", AngelMenuButtons, null);
         createSwitchWeaponButton("SwitchWeapon", AngelMenuButtons);
         createDevineStrengthButton("Devine Strength", AngelMenuButtons);
-
-        createSummonButton("Summon", AngelMenuButtons);
-        createSplitButton("Split", AngelMenuButtons);
-        createSummonStaminaButton("Stamina", AngelMenuButtons);
-        createSwitchSummonButton("Switch", AngelMenuButtons);
+//TODO angel buttons
+     //   createSummonButton("Summon", AngelMenuButtons);
+     //   createSplitButton("Split", AngelMenuButtons);
+     //   createSummonStaminaButton("Stamina", AngelMenuButtons);
+     //   createSwitchSummonButton("Switch", AngelMenuButtons);
 
 
         SetUpMenuList(AngelMovesSubScene.getPane(), AngelMenuButtons, 5, 0);
@@ -1911,6 +1920,7 @@ public class GameInterface {
                                 ResetAction();
                                 ResetArrow();
                                 ApplyPlayer();
+                                System.out.println("Switch Summon pressed");
                                 try {
                                     EndTurn(false);
                                 } catch (IOException | ClassNotFoundException ignored) {
@@ -2430,6 +2440,7 @@ public class GameInterface {
             if (amogus>5) amogus=0; else amogus++;
             EvaSaveUtil.SaveGameState(savebackuppath+"currentgame"+amogus+".dat", CurrentState);
             UpdateTurn();
+            System.out.println("End Turn");
         }
     }
 
@@ -2666,6 +2677,7 @@ public class GameInterface {
                 if (CurrentSubAction != null) {
                     getCurrentEvangelion().SetUpPutItemToLocation(CurrentSubAction);
                     EndTurnButton.setText("Set Up");
+                    System.out.println("Put item to location");
                 }
                 if (getCurrentEvangelion().isSetUp())  {
                     EndTurnButton.setText("End Turn");
@@ -3293,6 +3305,7 @@ public class GameInterface {
         }
         SetUpActionLabels();
         EndTurnButton.setText("End Turn");
+        System.out.println("Set Up Turn");
         ApplyPlayer();
     }
 
@@ -3572,6 +3585,7 @@ public class GameInterface {
             @Override
             public void handle(ActionEvent event) {
                 try {
+                    System.out.println("Update turn button pressed");
                     UpdateTurn();
                 } catch (IOException | ClassNotFoundException e) {
                     throw new RuntimeException(e);
@@ -3588,6 +3602,7 @@ public class GameInterface {
 
         DirectoryWatcher saveFileWatcher = new DirectoryWatcher(directory, targetFile, () -> {
             try {
+                System.out.println("Updated turn on savefilewatcher");
                 UpdateTurn();
             } catch (IOException | ClassNotFoundException e) {
                 e.printStackTrace();
@@ -3782,6 +3797,7 @@ public class GameInterface {
             UpdatePlayerView();
             UpdateCurrentLables();
             EndTurnButton.setText("Set Up");
+            System.out.println("Set Up Phase setup");
             if (!CurrentPlayerIsGM()) {
                 for (String S : Players) {
                     if (CurrentPlayer.equals(S)) {
@@ -3810,6 +3826,8 @@ public class GameInterface {
                     SetUpActionLabels();
                     WeaponCheck();
                     checkWeaponPotential();
+                    if (!getCurrentEvangelion().getNameEffects().contains("FateDefence")) {
+                    DefenceFateButton.setText("Use Fate"); }
                     showSubScene(DefenceSubScene);
                 }
                 case "DefendHelp" -> {
@@ -4033,8 +4051,10 @@ public class GameInterface {
                         for (BaseUnit unit : UnitsList) {
                             if (unit.getX() == -1 && unit.getY() == -1) {
                                 SetPosition(unit, sector.x, sector.y);
-                                if (UnitsList.indexOf(unit) != UnitsList.size()-1)
-                                EndTurnButton.setText("Set Up"); else EndTurnButton.setText("End Turn");
+                                if (UnitsList.indexOf(unit) != UnitsList.size()-1) {
+                                EndTurnButton.setText("Set Up");
+                                System.out.println("Set Up Phase GM");
+                                } else EndTurnButton.setText("End Turn");
                                 Update();
                                 break;
                             } else EndTurnButton.setText("End Turn");
