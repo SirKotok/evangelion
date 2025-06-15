@@ -89,7 +89,7 @@ public class GameInterface {
     public List<String> AngelTypesNamesList;
     public Gamestate CurrentState;
     public List<BaseUnit> UnitsList;
-    public List<ChazaqielSummon> SummonList = new ArrayList<>();
+ //   public List<ChazaqielSummon> SummonList = new ArrayList<>();
     public List<Evangelion> EvangelionList;
     public List<Angel> AngelList;
     public BaseUnit ClickedUnit;
@@ -234,6 +234,7 @@ public class GameInterface {
     private DisplaySubSpace DoubleEdgeCheckSubScene;
     private DisplaySubSpace WoundSubScene;
     private DisplaySubSpace HelpSubScene;
+
     private DisplaySubSpace OnMissDramaSubScene;
     private DisplaySubSpace OnEvaWoundDramaSubScene;
     private DisplaySubSpace OnResupplyDramaSubScene;
@@ -243,6 +244,7 @@ public class GameInterface {
     private DisplaySubSpace OnDealingDamageDramaSubScene;
     private DisplaySubSpace OnEvaGuardDramaSubScene;
     private DisplaySubSpace OnEvaHitDramaSubScene;
+
     private EvaLabel AttackRollLabel;
     private EvaLabel DebugLabel;
     private EvaLabel AttackTestRollLabel;
@@ -463,9 +465,9 @@ public class GameInterface {
         if (unit instanceof Evangelion e) {
             EvangelionList.remove(e);
         }
-        if (unit instanceof ChazaqielSummon e) {
-            SummonList.remove(e);
-        }
+    //    if (unit instanceof ChazaqielSummon e) {
+   //         SummonList.remove(e);
+   //     }
         if (unit instanceof Angel e) {
             AngelList.remove(e);
         }
@@ -551,15 +553,15 @@ public class GameInterface {
 
         AttackRollLabel = new EvaLabel("");
         AttackRollLabel.SetPosition(10, 20);
-        DebugLabel = new EvaLabel("DEBUG");
-        DebugLabel.SetPosition(25, 10);
-        AttackRollsSubScene.getPane().getChildren().add(DebugLabel);
+      //  DebugLabel = new EvaLabel("DEBUG");
+     //   DebugLabel.SetPosition(25, 10);
+      //  AttackRollsSubScene.getPane().getChildren().add(DebugLabel);
         AttackTestRollLabel = new EvaLabel("");
         AttackTestRollLabel.SetPosition(100, 20);
         EvaButton AttackRoll = createAttackRollButton("Roll Attack");
         AttackMax = createAttackRollMaxButton("Max Roll");
 
-        TechnologyButton = createTechnologyButton("Overheat");
+        TechnologyButton = createTechnologyButton("Overheat", "Change potential dice roll using 'Overheat' technology");
         EvaButton AttackTestRoll = createAttackRollTestButton("Attack Test");
         AttackRollsSubScene.getPane().getChildren().add(TechnologyButton);
         AttackRollsSubScene.getPane().getChildren().add(AttackRoll);
@@ -632,11 +634,8 @@ public class GameInterface {
         DefenceSubScene.getPane().getChildren().add(HelpName);
         List<EvaButton> menu = new ArrayList<>();
 
-        EvaButton LimitCutButton = createNervButton("Limit Cut", menu, null, 3, 0);
-        LimitCutButton.setPosition(100, 210);
-        EvaLabel DefenseLimitCutLabel = new EvaLabel("Use 3 Resources for +20 Reflexes; 50% to get Bruised");
-        DefenceSubScene.getPane().getChildren().add(DefenseLimitCutLabel);
-        DefenseLimitCutLabel.SetPosition(100, 190);
+        EvaButton LimitCutButton = createNervButton("Limit Cut", menu, null, 3, 0,"Use 3 Resources for +20 Reflexes; 50% to get Bruised");
+        LimitCutButton.setPosition(100, 190);
         DefenceSubScene.getPane().getChildren().add(LimitCutButton);
 
         //TODO Defence help isnt programmed properly. It will work in game as it should, but will need to be fixed for main game. Anyone can use any powers when they shouldnt.
@@ -776,6 +775,7 @@ public class GameInterface {
 
     private EvaButton createAttackRollButton(String name){
         EvaButton button = new EvaButton(name);
+        button.Explain("Rolls your damage dice with most modifiers added");
         button.setPrefWidth(80);
         button.setPrefHeight(30);
         button.setOnAction(new EventHandler<ActionEvent>() {
@@ -783,23 +783,23 @@ public class GameInterface {
             public void handle(ActionEvent event){
                 if (!AttackRollCanUse) return;
                 EndTurnButton.setText("Progress");
-                DebugLabel.setText("1");
+           //     DebugLabel.setText("1");
                 BaseUnit Attacker = getCurrentUnit();
-                DebugLabel.setText("2");
+           //     DebugLabel.setText("2");
                 int WeaponDN = CurrentChosenWeapon.getDiceNumber();
                 int WeaponDS = CurrentChosenWeapon.getDiceStrength();
                 int WeaponP = CurrentChosenWeapon.getPower();
-                DebugLabel.setText("3");
+               // DebugLabel.setText("3");
                 if (CurrentChosenWeapon.isGauss() && !AttackTestRollCanUse) {
                     assert Attacker != null;
                     WeaponP += getDOSMax(Integer.parseInt(AttackTestRollLabel.getText()), Attacker.getAccuracy(), 4);
                 }
-                DebugLabel.setText("4");
+              //  DebugLabel.setText("4");
                 int S = Attacker.getUnitStrength(CurrentChosenWeapon);
-                DebugLabel.setText("5");
+             //   DebugLabel.setText("5");
                 int AttackSum = 0;
                 for (int k = 0; k < WeaponDN; k++) {
-                    DebugLabel.setText("5-"+k);
+              //      DebugLabel.setText("5-"+k);
                     int diceAdd = RandomGenerator.nextInt(WeaponDS) + 1;
                     if (CurrentChosenWeapon.isProven()) {
                         int half = (int)Math.ceil(WeaponDS*0.5f);
@@ -807,11 +807,11 @@ public class GameInterface {
                     }
                     AttackSum += diceAdd;
                 }
-                DebugLabel.setText("6");
+             //   DebugLabel.setText("6");
                 AttackSum+=WeaponP+S;
                 AttackRollLabel.setText(""+AttackSum);
                 AttackRollCanUse = false;
-                DebugLabel.setText("7");
+             //   DebugLabel.setText("7");
             }
         });
         return button;
@@ -820,6 +820,7 @@ public class GameInterface {
 
     private EvaButton createAttackRollMaxButton(String name){
         EvaButton button = new EvaButton(name);
+        button.Explain("Uses 'Explosive' on your weapon to set attack to max");
         button.setPrefWidth(80);
         button.setPrefHeight(30);
         button.setOnAction(new EventHandler<ActionEvent>() {
@@ -861,6 +862,7 @@ public class GameInterface {
 
     private EvaButton createPreUseLineAreaSwitchButton(String name){
         EvaButton button = new EvaButton(name);
+        button.Explain("Switch between Area and Line for weapons with both");
         button.setPrefWidth(80);
         button.setPrefHeight(30);
         button.setOnAction(new EventHandler<ActionEvent>() {
@@ -914,6 +916,7 @@ public class GameInterface {
 
     private EvaButton createPreUseTechnologyButton(String name){
         EvaButton button = new EvaButton(name);
+        button.Explain("Activate/Deactivate N2 or Maser Technology");
         button.setPrefWidth(80);
         button.setPrefHeight(30);
         button.setOnAction(new EventHandler<ActionEvent>() {
@@ -956,7 +959,11 @@ public class GameInterface {
         }
     }
 
-
+    private EvaButton createTechnologyButton(String name, String tip){
+        EvaButton button = createTechnologyButton(name);
+        button.Explain(tip);
+        return button;
+    }
     private EvaButton createTechnologyButton(String name){
         EvaButton button = new EvaButton(name);
         button.setPrefWidth(80);
@@ -984,6 +991,7 @@ public class GameInterface {
 
     private EvaButton createWPFluxButton(String name){
         EvaButton button = new EvaButton(name);
+        button.Explain("Use Weapon Flux upgrade if you have it");
         button.setPrefWidth(80);
         button.setPrefHeight(30);
         button.setOnAction(new EventHandler<ActionEvent>() {
@@ -1007,6 +1015,7 @@ public class GameInterface {
 
     private EvaButton createAttackRollTestButton(String name){
         EvaButton button = new EvaButton(name);
+        button.Explain("Rolls your accuracy test");
         button.setPrefWidth(80);
         button.setPrefHeight(30);
         button.setOnAction(new EventHandler<ActionEvent>() {
@@ -1201,9 +1210,9 @@ public class GameInterface {
         UpdateCurrentLables();
         if (LastClickedUnit == null) return;
         BaseUnit LastClickedUnit1 = LastClickedUnit;
-        if (LastClickedUnit instanceof ChazaqielSummon summon) {
-            LastClickedUnit1 = getUnitFromPlayer(summon.getCopyName());
-        }
+   //     if (LastClickedUnit instanceof ChazaqielSummon summon) {
+  //          LastClickedUnit1 = getUnitFromPlayer(summon.getCopyName());
+   //     }
         if (LastClickedUnit1 instanceof Evangelion Eva) {
             EvaStatsLabel.setText(Eva.state.PlayerName+"'s stats:");
             AccuracyLabel.setText("Accuracy:  "+(Eva.getAccuracy()));
@@ -1260,7 +1269,7 @@ public class GameInterface {
         CurrentAmmoLabel.setText(k);
         CurrentWeaponTechnologyLabel.setText("Tech: "+Current.Technology.toString().toLowerCase()); }
 
-        if (getCurrentUnit() instanceof ChazaqielSummon summon) {
+     /*   if (getCurrentUnit() instanceof ChazaqielSummon summon) {
             BaseUnit unit =  getUnitFromPlayer(summon.getCopyName());
             CurrentAccuracyLabel.setText("Stamina: " + summon.getStamina());
             CurrentAccuracyLabel.setText("Accuracy: "+(unit.getAccuracy()));
@@ -1271,7 +1280,7 @@ public class GameInterface {
             CurrentReflexesLabel.setText("Reflexes: "+(unit.getReflexes()));
             CurrentSpeedLabel.setText("Speed: "+(unit.getSpeed()));
             return;
-        }
+        } */
 
 
         if (getCurrentUnit() instanceof Evangelion unit) {
@@ -1331,7 +1340,7 @@ public class GameInterface {
        return EvangelionList.get(Players.indexOf(CurrentPlayer)); } else return null;
     }
 
-    private ChazaqielSummon getCurrentSummon(){
+   /* private ChazaqielSummon getCurrentSummon(){
        // System.out.println("Getting Player: ");
         if (SummonPlayers.contains(CurrentPlayer)) {
             ChazaqielSummon summon = SummonList.get(SummonPlayers.indexOf(CurrentPlayer));
@@ -1339,15 +1348,15 @@ public class GameInterface {
             return summon;
         }
         else return null;
-    }
+    }  */
 
 
     private BaseUnit getCurrentUnit() {
         if (Players.contains(CurrentPlayer)) return getCurrentEvangelion();
         if (CurrentPlayer.equals("GM")) return AngelList.get(0);
-        if (SummonPlayers.contains(CurrentPlayer)) {
-            return getCurrentSummon();
-        }
+    //    if (SummonPlayers.contains(CurrentPlayer)) {
+    //        return getCurrentSummon();
+    //    }
         else return null;
     }
 
@@ -1432,7 +1441,7 @@ public class GameInterface {
         EvaMenuSubScene ActionsSubScene = new EvaMenuSubScene(4, 40, SizeDelta);
         gamePane.getChildren().add(ActionsSubScene);
 
-        createActionTypeButton("None", EvangelionsMenuButtons, null);
+        createActionTypeButton("None", EvangelionsMenuButtons, null, "Cancel Action");
 
         EvaMenuSubScene OtherActions = new EvaMenuSubScene(5, 40, SizeDelta);
         EvaMenuSubScene AttackActions = new EvaMenuSubScene(5, 40, SizeDelta);
@@ -1485,12 +1494,13 @@ public class GameInterface {
         List<EvaButton> MoveMenuButtons = new ArrayList<>();
         List<EvaButton> NervMenuButtons = new ArrayList<>();
 
-        createNervButton("Remote Medical", NervMenuButtons, NervPlayerChoice, 1, 0);
-        createNervButton("Eject", NervMenuButtons, NervPlayerChoice, 1, 0);
-        createNervButton("Covering Fire", NervMenuButtons, null, 2, 0);
-        createNervButton("Resupply", NervMenuButtons, NervWeaponRequisition, 2, 1);
-        createNervButton("N2 Mine", NervMenuButtons, null, 4, 2);
-        createNervButton("Self-Destruct", NervMenuButtons, null, 2, 2);
+        createNervButton("Remote Medical", NervMenuButtons, NervPlayerChoice, 1, 0, "0 or 1 Stamina, 1 Resources\nYou, or another pilot of your choice, takes only half the\n" +
+                "penalty from Injury Conditions for the rest of the Battle, cost = 0 stamina on self, 1 stamina on another pilot");
+        createNervButton("Eject", NervMenuButtons, NervPlayerChoice, 1, 0, "0 or 1 Stamina, 1 Resources\nEject yourself for 0 stamina, or another pilot for 1 stamina.\nThe ejected pilot has a 30% chance to become bruised");
+        createNervButton("Covering Fire", NervMenuButtons, null, 2, 0, "0 Stamina 2 Resources\nAngel Cant use Attacks of Opportunity until the end of your turn");
+        createNervButton("Resupply", NervMenuButtons, NervWeaponRequisition, 2, 1, "1 Stamina, 2 Resources\nRequest item to any location");
+        createNervButton("N2 Mine", NervMenuButtons, null, 4, 2, "2 Stamina, 4 Resources\nTemporarily end battle, Nerv will have 1 supply for next engagement");
+        createNervButton("Self-Destruct", NervMenuButtons, null, 2, 2, "2 Stamina, 2 Resources\nTemporarily end battle, the Evangelion cant be used for the next fight, all supply lost, become bruised");
 
 
 
@@ -1500,11 +1510,14 @@ public class GameInterface {
 
 
 
-        createActionSubTypeButton("Aim", OtherMenuButtons, null, true);
-        createActionSubTypeButton("Defend", OtherMenuButtons, null, true);
-        createActionSubTypeButton("Drop Item", OtherMenuButtons, null, true);
-        createActionSubTypeButton("Discard Item", OtherMenuButtons, null, true);
-        createActionSubTypeButton("Request Item", OtherMenuButtons, WeaponRequisition, false);
+        createActionSubTypeButton("Aim", OtherMenuButtons, null, true, "1 Stamina\nThe next Attack the Eva makes gains a +10 bonus\n" +
+                "However, this bonus is lost if the Eva moves (either willingly or unwillingly) before using it");
+        createActionSubTypeButton("Defend", OtherMenuButtons, null, true, "1 Stamina\nYou gain a +10 bonus to your Reflexes until the start of your next " +
+                "Turn or Interval.\nIf you end your Turn or Interval with Stamina Remaining, you automatically use this Action.\n" +
+                "Defend cannot stack with itself, nor the benefit of the Run Action.");
+        createActionSubTypeButton("Drop Item", OtherMenuButtons, null, true, "0 Stamina\nDrop the Item you are holding");
+        createActionSubTypeButton("Discard Item", OtherMenuButtons, null, true, "0 Stamina\nDiscard the Item you are holding\nregain the Requisiition cost");
+        createActionSubTypeButton("Request Item", OtherMenuButtons, WeaponRequisition, false, "0 Stamina\nRequest an item to a support structure location");
 
         if (!Eva.type.CurrentATPowers.isEmpty()) {
         EvaMenuSubScene ATPowersScene = new EvaMenuSubScene(5, 40, SizeDelta);
@@ -1529,19 +1542,19 @@ public class GameInterface {
 
         createActionSubTypeButton("Simple Action", OtherMenuButtons, SimpleAction, false);
 
-        createActionSubTypeButton("Basic Attack", AttackMenuButtons, null, true);
-        createActionSubTypeButton("Blitz", AttackMenuButtons, null, true);
-        createActionSubTypeButton("Full Auto", AttackMenuButtons, null, true);
+        createActionSubTypeButton("Basic Attack", AttackMenuButtons, null, true, "1 Stamina");
+        createActionSubTypeButton("Blitz", AttackMenuButtons, null, true, "2 Stamina\nStronger attack");
+        createActionSubTypeButton("Full Auto", AttackMenuButtons, null, true, "2 Stamina\nAttack gains Area");
         if (Eva.hasUpgrade("Overwatch")) createActionSubTypeButton("Overwatch", AttackMenuButtons, null, true);
-        createActionSubTypeButton("Toss", AttackMenuButtons, null, true);
+        createActionSubTypeButton("Toss", AttackMenuButtons, null, true, "2 Stamina\nMelee Attack with 'Unarmed Attack',\nthrows the enemy in the direction of the hit for 2d3 sectors");
         //TODO Grab actions dont do anything. -turn into Toss
-        createActionSubTypeButton("Throw", AttackMenuButtons, null, true);
+        createActionSubTypeButton("Throw", AttackMenuButtons, null, true, "1 Stamina\nThrows your weapon");
 
         createActionSubTypeButton("Run", MoveMenuButtons, null, true);
         if (Eva.hasUpgrade("Reposition")) createActionSubTypeButton("Reposition", MoveMenuButtons, null, true);
-        createActionSubTypeButton("Maneuver", MoveMenuButtons, null, true);
+        createActionSubTypeButton("Maneuver", MoveMenuButtons, null, true, "1 Stamina\nMove 1 sector while immune to attacks of opportunity");
         createActionSubTypeButton("Stand", MoveMenuButtons, null, true);
-        createActionSubTypeButton("Take Cover", MoveMenuButtons, null, true);
+        createActionSubTypeButton("Take Cover", MoveMenuButtons, null, true, "Move into Cover, gain +1 Armor");
 
 
 
@@ -1651,6 +1664,7 @@ public class GameInterface {
         gamePane.getChildren().add(DMScreen);
         List<EvaButton> dmbuttonlist = new ArrayList<>();
         dmbuttonlist.add(createDMButton("None"));
+        dmbuttonlist.add(createDMButton("OnMissDrama"));
         dmbuttonlist.add(createDMButton("Delete"));
         dmbuttonlist.add(createDMButton("SupportSector"));
         dmbuttonlist.add(createDMButton("Effect"));
@@ -1832,7 +1846,7 @@ public class GameInterface {
                     ResetArrow();
                     CurrentAction = "GMApply";
                     CurrentSubAction = name;
-                    if (name.equals("ApplyAll")) EndTurnButton.setText("Apply");
+                    if (name.equals("ApplyAll") || name.equals("OnMissDrama")) EndTurnButton.setText("Apply");
                     else EndTurnButton.setText("End Turn");
                     Update();
                 }
@@ -1841,7 +1855,7 @@ public class GameInterface {
         return button;
     }
 
-    private EvaButton createSummonButton(String name, List<EvaButton> menu) {
+  /*  private EvaButton createSummonButton(String name, List<EvaButton> menu) {
         EvaButton button = new EvaButton(name);
         button.setPrefHeight(30);
         button.setPrefWidth(90);
@@ -1916,7 +1930,7 @@ public class GameInterface {
             public void handle(ActionEvent event) {
                 if (!Objects.equals(CurrentAction, name)) {
                     ResetArrow();
-                    for (ChazaqielSummon summon : SummonList) {
+                   for (ChazaqielSummon summon : SummonList) {
                             if (summon.getStamina() > 0){
                              //   System.out.println("Summon Checked list: "+summon.getPlayerName()+" #"+SummonList.indexOf(summon));
                                 String s = summon.getPlayerName();
@@ -1939,7 +1953,13 @@ public class GameInterface {
             }
         });
         return button;
-    }
+    } */
+  private EvaButton createActionTypeButton(String name, List<EvaButton> menu, EvaMenuSubScene subScene, String tip) {
+      EvaButton button = createActionTypeButton(name, menu, subScene);
+      button.Explain(tip);
+      return button;
+  }
+
 
     private EvaButton createActionTypeButton(String name, List<EvaButton> menu, EvaMenuSubScene subScene) {
         EvaButton button = new EvaButton(name);
@@ -2050,8 +2070,13 @@ public class GameInterface {
     }
 
 
+    private EvaButton createActionSubTypeButton(String name, List<EvaButton> menu, EvaMenuSubScene subScene, boolean secret, String tip) {
+        EvaButton button = createActionSubTypeButton(name, menu, subScene, secret);
+        button.Explain(tip);
+        return button;
+    }
 
-    private void createActionSubTypeButton(String name, List<EvaButton> menu, EvaMenuSubScene subScene, boolean secret) {
+    private EvaButton createActionSubTypeButton(String name, List<EvaButton> menu, EvaMenuSubScene subScene, boolean secret) {
         EvaButton button = new EvaButton(name);
         button.setPrefHeight(30);
         menu.add(button);
@@ -2262,6 +2287,7 @@ public class GameInterface {
 		
 		}
 		);
+        return button;
     }
 
 
@@ -2472,9 +2498,9 @@ public class GameInterface {
 
     public void EndRound(){
         for (BaseUnit unit : UnitsList) {
-            if (!(unit instanceof ChazaqielSummon)) {
-            unit.setStamina(2);
-            }
+        //    if (!(unit instanceof ChazaqielSummon)) {
+       //     unit.setStamina(2);
+        //    }
             unit.SetUsedAttack(false);
             unit.SetUsedTactical(false);
             unit.SetUsedGuard(false);
@@ -2601,7 +2627,7 @@ public class GameInterface {
                 CurrentState.BackupAction = CurrentState.Action;
                 CurrentState.Action = NextAttack;
 
-                if (attacktarget instanceof ChazaqielSummon) {
+           /*     if (attacktarget instanceof ChazaqielSummon) {
                     if (!NextAttack.Missed()) {
                         discard(attacktarget);
                         Target = null;
@@ -2618,7 +2644,7 @@ public class GameInterface {
                         }
                         return true;
                     }
-                }
+                } */
 
                 if (NextAttack.Missed()) {
                     if (CurrentPlayerIsGM()) {
@@ -2712,7 +2738,7 @@ public class GameInterface {
                 CurrentState.NextPlayer  = CurrentPlayer;
                 return true;
             }
-            if (EndTurnButton.getText().equals("Summon")) {
+         /*   if (EndTurnButton.getText().equals("Summon")) {
                 if (getCurrentUnit().getATP() > 0) {
                 for (int i = 0; i < 3+getCurrentUnit().getWoundLevel(); i++) {
                     String randomplayer = Players.get(RandomGenerator.nextInt(0, Players.size()));
@@ -2731,7 +2757,7 @@ public class GameInterface {
                 }
                 CurrentState.NextPlayer  = CurrentPlayer;
                 return true;
-            }
+            } */
             if (EndTurnButton.getText().equals("Discard")) {
                 Weapon w = CurrentChosenWeapon;
                 getCurrentUnit().removeWeapon(w);
@@ -2769,6 +2795,9 @@ public class GameInterface {
                     effect.Expiration = Integer.parseInt(GMEffectExpiration.getText());
                     effect.ProhibitedActions.add(GMEffectProhibited.getText());
                     ClickedUnit.AddEffect(effect);
+                }
+                if (CurrentSubAction.equals("OnMissDrama")) {
+                    CurrentState.OnMissDrama = !CurrentState.OnMissDrama;
                 }
                 if (CurrentSubAction.equals("ApplyAll")) {
                     StateEffect effect = new StateEffect(GMEffectName.getText());
@@ -2810,7 +2839,7 @@ public class GameInterface {
                 return true;
             }
             BaseUnit Current = getCurrentUnit();
-            if (Current instanceof ChazaqielSummon) Current.setStamina(0);
+         //   if (Current instanceof ChazaqielSummon) Current.setStamina(0);
             Current.SetTurnDone(true);
             if (Current instanceof Evangelion) {
                 BaseUnit Angel = getUnitFromPlayer("GM");
@@ -3098,16 +3127,20 @@ public class GameInterface {
                 Attack CAttack = (Attack) CurrentState.Action;
                 System.out.println("START DEFENCE ");
                 BaseUnit DefendingUnit = getCurrentUnit();
+                if (CurrentState.GameQueueList.isEmpty()) System.out.println("ERROR: Queue empty ?");
+                else {
                 System.out.println("Player = "+CurrentState.Player+ " Next: "+CurrentState.NextPlayer+ " Queueu: "+ CurrentState.GameQueueList.get(0));
                 System.out.println("Queue sizes, Attack: "+CurrentState.AttackQueueList.size()+" player: "+CurrentState.GameQueueList.size());
                 System.out.println("Attack "+ CurrentState.AttackQueueList.get(0).Attacker+" attacked "+CurrentState.AttackQueueList.get(0).Defender);
                 for (String player : CurrentState.GameQueueList) {
                     System.out.println(player);
                 }
+
                 if (CurrentState.BackupAction == null) {
                 CurrentState.GameQueueList.remove(0);
                 CurrentState.AttackQueueList.remove(0); }
                 System.out.println("Queue sizes, Attack: "+CurrentState.AttackQueueList.size()+" player: "+CurrentState.GameQueueList.size());
+                }
                 assert DefendingUnit != null;
                 boolean passed = false;
                 if (DefendingUnit.UsedGuard()) {
@@ -3221,18 +3254,18 @@ public class GameInterface {
                              NextAttack.direction = Attack.figureoutDirection(AttackingUnit.getX(), AttackingUnit.getY(), attacktarget.getX(), attacktarget.getY());
                          }
                          System.out.println("Attack: at = "+NextAttack.Attacker+" def = "+NextAttack.Defender+" missed ="+NextAttack.Missed());
-                         if (attacktarget instanceof ChazaqielSummon) {
+                   /*      if (attacktarget instanceof ChazaqielSummon) {
                                     if (Target == null || !NextAttack.Missed()) {
                                         discard(attacktarget);
                                         Target = null;
                                         System.out.println("Target dead");
                                     }
                                 }
-                                else {
+                                else { */
                                 AttackQueue.add(NextAttack);
                                 targetlistchanged.add(attacktarget);
                                 System.out.println("Added to queue");
-                                }
+                     //           }
                      }
                      TargetList = targetlistchanged;
                      //TODO Throwing customisation + throwing property doesnt return weapon when defended, only when missed. (Mawrak)
@@ -3271,7 +3304,9 @@ public class GameInterface {
                              CurrentState.Phase = "";
                              return true;
                          } //TODO Add correct Doom things - when you redirect damage to another player.
-                       /*  if (getCurrentEvangelion() != null && getCurrentEvangelion().state.Doom > 1) {
+                         // RESULT: Now it works by a button in DM menu.
+                         if (CurrentState.OnMissDrama) {
+                         if (getCurrentEvangelion() != null && getCurrentEvangelion().state.Doom > 1) {
                          System.out.println("The sus thing that attacks eva in range on miss");
                          if (getRandomEvaInRange(AttackQueue.get(0).AttackerX, AttackQueue.get(0).AttackerY, AttackQueue.get(0).DefenderX, AttackQueue.get(0).DefenderY) != null) {
                              Evangelion eva = getRandomEvaInRange(AttackQueue.get(0).AttackerX, AttackQueue.get(0).AttackerY, AttackQueue.get(0).DefenderX, AttackQueue.get(0).DefenderY);
@@ -3292,7 +3327,8 @@ public class GameInterface {
                              CurrentState.Phase = "Defend";
                              return true;
                          }
-                         } */
+                         }
+                         }
                          System.out.println("Set next player to current player");
                          CurrentState.NextPlayer = CurrentPlayer;
                          CurrentState.Phase = "";
@@ -3460,11 +3496,11 @@ public class GameInterface {
             Weapons.add(w.getWeapon());
         }
         CurrentState.Weapons = Weapons;
-        List<ChazaqielSummonState> CHSS = new ArrayList<>();
-        for (ChazaqielSummon w : SummonList) {
-            CHSS.add(w.state);
-        }
-        CurrentState.SummonList = CHSS;
+   //     List<ChazaqielSummonState> CHSS = new ArrayList<>();
+    //    for (ChazaqielSummon w : SummonList) {
+   //         CHSS.add(w.state);
+  //      }
+  //      CurrentState.SummonList = CHSS;
         i = 0;
         for (Angel angel : AngelList) {
             CurrentState.AngelList.set(i, angel.state);
@@ -3484,7 +3520,7 @@ public class GameInterface {
             i++;
         }
         List<BaseUnit> discardqueue2 = new ArrayList<>();
-        discardqueue2.addAll(SummonList);
+       // discardqueue2.addAll(SummonList);
         for (BaseUnit w : discardqueue2) {
             discard(w);
         }
@@ -3493,12 +3529,12 @@ public class GameInterface {
         for (WeaponObject w : discardqueue) {
             discard(w);
         }
-        SummonList = new ArrayList<>();
+     //   SummonList = new ArrayList<>();
         WeaponsWorld = new ArrayList<>();
         if (CurrentState.SummonList != null) {
-        for (ChazaqielSummonState state : CurrentState.SummonList) {
-            createChazaquielSummon(state);
-        }
+      //  for (ChazaqielSummonState state : CurrentState.SummonList) {
+      //      createChazaquielSummon(state);
+      //  }
         }
         if (CurrentState.Weapons != null) {
             for (Weapon weapon : CurrentState.Weapons) {
@@ -3529,7 +3565,7 @@ public class GameInterface {
         return obj;
     }
 
-    public ChazaqielSummon createChazaquielSummon(ChazaqielSummonState state) {
+ /*   public ChazaqielSummon createChazaquielSummon(ChazaqielSummonState state) {
         List<ChazaqielSummon> discardqueue = new ArrayList<>();
         for (ChazaqielSummon o : SummonList) {
             if (o.state.equals(state)) discardqueue.add(o);
@@ -3551,7 +3587,8 @@ public class GameInterface {
         Sector sector = GameBoard.getRandomSectorInRange(unit.getX(), unit.getY(), range);
         if (getUnit(sector.x, sector.y) != null) return null;
         else  return createChazaquielSummon(evangelion, sector.x, sector.y);
-    }
+    } */
+
     public void Teleport(BaseUnit unit, int range)  {
         Sector sector = GameBoard.getRandomSectorInRange(unit.getX(), unit.getY(), range);
         if (getUnit(sector.x, sector.y) != null) return;
@@ -3559,7 +3596,7 @@ public class GameInterface {
         unit.setY(sector.y);
         Update();
     }
-    public ChazaqielSummon createChazaquielSummon(BaseUnit evangelion, BaseUnit unit, int range) throws IOException {
+ /*   public ChazaqielSummon createChazaquielSummon(BaseUnit evangelion, BaseUnit unit, int range) throws IOException {
         Sector sector = GameBoard.getRandomSectorInRange(unit.getX(), unit.getY(), range);
         if (getUnit(sector.x, sector.y) != null) return null;
         else  return createChazaquielSummon(evangelion, sector.x, sector.y);
@@ -3593,9 +3630,9 @@ public class GameInterface {
         obj.UnitCircle.setDisable(true);
 
         return obj;
-    }
+    } */
 
-    public ChazaqielSummon createChazaquielSummon(BaseUnit evangelion, int x, int y) throws IOException {
+ /*   public ChazaqielSummon createChazaquielSummon(BaseUnit evangelion, int x, int y) throws IOException {
         ChazaqielSummon obj = new ChazaqielSummon(evangelion,
                 new ChazaqielSummonState("GM"+ RandomGenerator.nextInt(0,100000), evangelion.getPlayerName()));
         SummonPlayers.add(obj.getPlayerName());
@@ -3620,7 +3657,7 @@ public class GameInterface {
         obj.UnitCircle.setDisable(true);
 
         return obj;
-    }
+    } */
 
     private void createUpdateTurnButton() throws IOException {
 
@@ -3874,7 +3911,7 @@ public class GameInterface {
                     SetUpActionLabels();
                     WeaponCheck();
                     checkWeaponPotential();
-                    if (!getCurrentEvangelion().getNameEffects().contains("FateDefence")) {
+                    if (getCurrentEvangelion() != null && !getCurrentEvangelion().getNameEffects().contains("FateDefence")) {
                     DefenceFateButton.setText("Use Fate"); }
                     showSubScene(DefenceSubScene);
                 }
@@ -4419,7 +4456,7 @@ public class GameInterface {
     }
     public void checkPotentialAttackEffect(){
         BaseUnit unit = getCurrentUnit();
-        if (unit == null || unit instanceof ChazaqielSummon) return;
+    //    if (unit == null || unit instanceof ChazaqielSummon) return;
         unit.RemovePotentialEffects();
         WeaponCheck();
         Weapon weapon = CurrentChosenWeapon;
@@ -4631,11 +4668,11 @@ public class GameInterface {
         String s = "Clicked: ";
         if (ClickedUnit != null) {
             BaseUnit display = ClickedUnit;
-            if (ClickedUnit instanceof ChazaqielSummon summon) {
-                if (CurrentPlayerIsGM()) {
-                    s = ""+ summon.getCopyName()+"'s Fake, "+summon.getPlayerName()+" "+summon.getStamina()+" // "; }
-                else display = summon.CopyUnit;
-            }
+         //      if (ClickedUnit instanceof ChazaqielSummon summon) {
+           //     if (CurrentPlayerIsGM()) {
+           //         s = ""+ summon.getCopyName()+"'s Fake, "+summon.getPlayerName()+" "+summon.getStamina()+" // "; }
+          //      else display = summon.CopyUnit;
+       //     }
             LastClickedUnit = ClickedUnit;
             if (display instanceof Evangelion evangelion) s = "Evangelion = "+ evangelion.state.PlayerName+"'s Evangelion, ";
             if (display instanceof Angel) s = "Chazaqiel ";
@@ -4825,8 +4862,9 @@ public class GameInterface {
     }
 
 
-    private EvaButton createNervButton(String name, List<EvaButton> menu, EvaMenuSubScene subScene, int cost, int stcost) {
+    private EvaButton createNervButton(String name, List<EvaButton> menu, EvaMenuSubScene subScene, int cost, int stcost, String tip) {
         EvaButton button = StandartButton(name, menu);
+        button.Explain(tip);
         button.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {

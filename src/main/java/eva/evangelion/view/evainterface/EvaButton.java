@@ -1,18 +1,33 @@
 package eva.evangelion.view.evainterface;
 
 import javafx.scene.control.Button;
+import javafx.scene.control.Tooltip;
 
 public class EvaButton extends Button {
 
 
+
+
     public EvaButton(String text) {
         setText(text);
-      //  setButtonFont();
-         setPrefWidth(90);
-         setPrefHeight(90);
-     //   setStyle(BUTTON_FREE_STYLE);
-     //   initializeButtonListeners();
+        setPrefWidth(90);
+        setPrefHeight(90);
 
+    }
+
+    public void Explain(String tip) {
+        Tooltip tooltip = new Tooltip(tip);
+        tooltip.setStyle(
+                "-fx-font-size: 16px;" +
+                        "-fx-text-fill: #FFFFFF;" +
+                        "-fx-background-color: linear-gradient(to bottom, #2D5F8A, #1E4160);" +
+                        "-fx-background-radius: 4;" +
+                        "-fx-padding: 8px;" +
+                        "-fx-border-color: #FFFFFF;" +
+                        "-fx-border-width: 1px;" +
+                        "-fx-border-radius: 4;"
+        );
+       this.setTooltip(tooltip);
     }
 
 
@@ -22,80 +37,6 @@ public class EvaButton extends Button {
     }
 
 
-  /*  private void setButtonFont() {
 
-        setFont(Font.loadFont(getClass().getResourceAsStream(FONT_PATH), 23));
-
-    }
-
-    private void setButtonPressedStyle() {
-        setStyle(BUTTON_PRESSED_STYLE);
-        setPrefHeight(45);
-        setLayoutY(getLayoutY() + 4);
-
-    }
-
-    private void setButtonReleasedStyle() {
-        setStyle(BUTTON_FREE_STYLE);
-        setPrefHeight(45);
-        setLayoutY(getLayoutY() - 4);
-
-    }
-
-
-    private void initializeButtonListeners() {
-
-        setOnMousePressed(new EventHandler<MouseEvent>() {
-
-            @Override
-            public void handle(MouseEvent event) {
-                if(event.getButton().equals(MouseButton.PRIMARY)) {
-                    setButtonPressedStyle();
-                }
-
-            }
-        });
-
-        setOnMouseReleased(new EventHandler<MouseEvent>() {
-
-            @Override
-            public void handle(MouseEvent event) {
-                if(event.getButton().equals(MouseButton.PRIMARY)) {
-                    setButtonReleasedStyle();
-                }
-
-            }
-        });
-
-        setOnMouseEntered(new EventHandler<MouseEvent>() {
-
-            @Override
-            public void handle(MouseEvent event) {
-                setEffect(new DropShadow());
-
-            }
-        });
-
-        setOnMouseExited(new EventHandler<MouseEvent>() {
-
-            @Override
-            public void handle(MouseEvent event) {
-                setEffect(null);
-
-            }
-        });
-
-
-
-
-
-
-
-
-
-
-
-
-    }  */
 
 }
