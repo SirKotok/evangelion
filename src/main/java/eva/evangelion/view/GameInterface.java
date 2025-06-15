@@ -183,7 +183,7 @@ public class GameInterface {
     private TextField GMEffectProhibited = new TextField("");
     private TextField GMEffectArmor = new TextField("0");
     private Weapon.Tech DevineStrength = Weapon.Tech.NONE;
-    public java.util.Random RandomGenerator = new java.util.Random();
+    public Random RandomGenerator = new Random();
     private TextField GMEffectAttackStrength = new TextField("0");
     private TextField GMEffectRangedStrength = new TextField("0");
     private TextField GMEffectSpeed = new TextField("0");
@@ -1147,6 +1147,9 @@ public class GameInterface {
     private boolean isBlitzOrFA() {
         return CurrentSubAction.equals("Blitz") || CurrentSubAction.equals("Full Auto");
     }
+    private boolean isToss() {
+        return CurrentSubAction.equals("Toss");
+    }
     private boolean isBlitz() {
         return CurrentSubAction.equals("Blitz");
     }
@@ -1172,7 +1175,7 @@ public class GameInterface {
         int cost = 1;
         if (isBlitzOrFA() || CurrentSubAction.equals("Overwatch")) cost = 2;
         if (ATPower != null) cost = ATPower.StaminaCost;
-		
+		if (isToss()) cost = 2;
 		
 		//BaseUnit unit = getCurrentUnit();
 		//if (unit != null && isTacticalAction() && !unit.UsedTactical()) 
@@ -1362,6 +1365,9 @@ public class GameInterface {
         if ((CurrentChosenWeapon == null || WeaponCompareList(CurrentChosenWeapon, checkWeapons) == null)) {
             CurrentChosenWeapon = SwitchToNextWeapon(unit, CurrentChosenWeapon);
         }
+        if (getCurrentUnit() instanceof Evangelion eva && isToss()) {
+            CurrentChosenWeapon = eva.state.Weapons.get(0);
+        }
         unit.UpdateCalcWeapon(CurrentChosenWeapon);
     }
 
@@ -1527,7 +1533,7 @@ public class GameInterface {
         createActionSubTypeButton("Blitz", AttackMenuButtons, null, true);
         createActionSubTypeButton("Full Auto", AttackMenuButtons, null, true);
         if (Eva.hasUpgrade("Overwatch")) createActionSubTypeButton("Overwatch", AttackMenuButtons, null, true);
-        createActionSubTypeButton("Grab", AttackMenuButtons, null, true);
+        createActionSubTypeButton("Toss", AttackMenuButtons, null, true);
         //TODO Grab actions dont do anything. -turn into Toss
         createActionSubTypeButton("Throw", AttackMenuButtons, null, true);
 
@@ -2078,6 +2084,21 @@ public class GameInterface {
                         UpdatePlayerView();
                         return;
                     }
+                    if (name.equals("Toss")) {
+                        if (getCurrentEvangelion().hasFreeHand()) {
+                        CurrentSubAction = "Toss";
+                        CurrentChosenWeapon = getCurrentEvangelion().state.Weapons.get(0);
+                        checkPotentialAttackEffect();
+                        UpdatePlayerView();
+                        System.out.println("Toss Selected");
+                        return; } else {
+                            CurrentSubAction = "Basic Attack";
+                            checkPotentialAttackEffect();
+                            UpdatePlayerView();
+                            EndTurnButton.setText("No Hand");
+                            System.out.println("Toss selected but no hand");
+                        }
+                    }
                     if (name.equals("Throw") && CurrentChosenWeapon.Ranged) {
                         CurrentSubAction = "Basic Attack";
                         checkPotentialAttackEffect();
@@ -2509,7 +2530,7 @@ public class GameInterface {
         if (validUnits.isEmpty()) {
             return null;
         } else {
-            java.util.Random random = new java.util.Random();
+            Random random = new Random();
             return validUnits.get(random.nextInt(validUnits.size()));
         }
     }
@@ -3110,6 +3131,24 @@ public class GameInterface {
                     passed = false;
                 }
                 if (!passed) {
+                   if (CAttack.getTossDistance() > 0 && !CAttack.getDirection().equals(Attack.TossDirection.NONE)) {
+                       int maxReach = CAttack.toss;
+                       int unitX = CAttack.DefenderX;
+                       int unitY = CAttack.DefenderY;
+                       int dx = - CAttack.AttackerX + unitX;
+                       int dy = -CAttack.AttackerX + unitY;
+                       int dxStep = Integer.signum(dx);
+                       int dyStep = Integer.signum(dy);
+                       int endX = unitX + dxStep * maxReach;
+                       int endY = unitY + dyStep * maxReach;
+                       while (!GameBoard.OnBoard(endX, endY)) {
+                           endX -= dxStep;
+                           endY -= dyStep;
+                       }
+                       DefendingUnit.setX(endX);
+                       DefendingUnit.setY(endY);
+                       UpdatePositions();
+                   }
                    DefendingUnit.hurt(CAttack);
                    DefendingUnit.ConditionTickEffect(StateEffect.ExpirationCondition.POTENTIAL);
                    for (StateEffect effect : CAttack.OnHitEffect) {
@@ -3177,6 +3216,10 @@ public class GameInterface {
                                  Integer.parseInt(AttackRollLabel.getText()), AttackingUnit.getX(),
                                  AttackingUnit.getY(), attacktarget.getX(), attacktarget.getY(),
                                  CurrentChosenWeapon.getPenetration()+pen, CurrentChosenWeapon, OnHitEffect);
+                         if (isToss()) {
+                             NextAttack.toss = RandomGenerator.nextInt(1, 3)+RandomGenerator.nextInt(1, 3);
+                             NextAttack.direction = Attack.figureoutDirection(AttackingUnit.getX(), AttackingUnit.getY(), attacktarget.getX(), attacktarget.getY());
+                         }
                          System.out.println("Attack: at = "+NextAttack.Attacker+" def = "+NextAttack.Defender+" missed ="+NextAttack.Missed());
                          if (attacktarget instanceof ChazaqielSummon) {
                                     if (Target == null || !NextAttack.Missed()) {
@@ -3193,7 +3236,7 @@ public class GameInterface {
                      }
                      TargetList = targetlistchanged;
                      //TODO Throwing customisation + throwing property doesnt return weapon when defended, only when missed. (Mawrak)
-                     if (Target != null && isThrow() && !((CurrentChosenWeapon.getThrowBonus() == 3) && AttackQueue.get(0).Missed())) 
+                     if (Target != null && isThrow() && !((CurrentChosenWeapon.getThrowBonus() == 3) && AttackQueue.get(0).Missed()))
 					 {
                        DropWeapon(getCurrentUnit(), CurrentChosenWeapon, Target.getX(), Target.getY());
                        System.out.println("Throw attack missed");
@@ -4188,6 +4231,23 @@ public class GameInterface {
                             drawArrow(getXFromBoard(CurrentUnit.getX()), getYFromBoard(CurrentUnit.getY()), getXFromBoard(sector.x), getYFromBoard(sector.y));
                             arrow.SetColor(Color.RED);
                             Target = ClickedUnit;
+                            if (isToss()) {
+                                int maxReach = 6;
+                                int unitX = Target.getX(); // 2,2
+                                int unitY = Target.getY();
+                                int dx = - CurrentUnit.getX() + unitX; // 1,2 = dx = -1, dy = 0
+                                int dy = - CurrentUnit.getY() + unitY;
+                                int dxStep = Integer.signum(dx); // -1
+                                int dyStep = Integer.signum(dy);
+                                int endX = unitX + dxStep * maxReach;
+                                int endY = unitY + dyStep * maxReach;
+                                while (!GameBoard.OnBoard(endX, endY)) {
+                                    endX -= dxStep;
+                                    endY -= dyStep;
+                                }
+                                UpdatePlayerView();
+                                ShowTossPossibilities(Target, unitX, unitY, endX, endY, dxStep, dyStep);
+                            }
                         }
                     else if (CurrentChosenWeapon != null && CurrentChosenWeapon.isWeapon() && (getCurrentUnit().getStamina() > 0) && CurrentAction.equals("Attack") && !(getCurrentUnit().UsedAttack()) && CurrentChosenWeapon.getArea() > -1 &&
                     GameBoard.isPossibleReachLocation(ClickedSector, CurrentUnit, CurrentUnit.getMaxRange(CurrentChosenWeapon)))
@@ -4540,6 +4600,17 @@ public class GameInterface {
                 if (sx != endx) sx += stepx;
                 if (sy != endy) sy += stepy;
             }
+        }
+    }
+
+
+    public void ShowTossPossibilities(BaseUnit target, int startx, int starty, int endx, int endy, int stepx, int stepy){
+        if (isToss()) {
+            WeaponCheck();
+            Sector targetsector = GameBoard.getSector(target.getX(), target.getY());
+            GameBoard.DrawLine(startx, starty, endx, endy, stepx, stepy, Color.YELLOWGREEN);
+            GameBoard.DrawSquare(targetsector, 0, Color.RED);
+
         }
     }
 
