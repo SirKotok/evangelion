@@ -2623,10 +2623,15 @@ public class GameInterface {
         }
             if (EndTurnButton.getText().equals("Drop")) {
                 Weapon w = CurrentChosenWeapon;
+                Evangelion Unit = getCurrentEvangelion();
+                if (Unit.canDrop(w)) {
                 DropWeapon(getCurrentUnit(), w, ClickedSector.x, ClickedSector.y);
                 WeaponCheck();
                 CurrentState.NextPlayer  = CurrentPlayer;
-                return true;
+                return true; } else {
+                    EndTurnButton.setText("Cant Drop");
+                    return false;
+                }
             }
             if (EndTurnButton.getText().equals("Swap")) {
                 Evangelion Unit = getCurrentEvangelion();
