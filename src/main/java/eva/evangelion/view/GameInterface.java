@@ -2137,7 +2137,7 @@ public class GameInterface {
                             System.out.println("Toss selected but no hand");
                         }
                     }
-                    if (name.equals("Throw") && CurrentChosenWeapon.Ranged) {
+                    if (name.equals("Throw") && (CurrentChosenWeapon.Ranged || !getCurrentUnit().canDrop(CurrentChosenWeapon))) {
                         CurrentSubAction = "Basic Attack";
                         checkPotentialAttackEffect();
                         UpdatePlayerView();
@@ -2541,9 +2541,7 @@ public class GameInterface {
 
     public void EndRound(){
         for (BaseUnit unit : UnitsList) {
-        //    if (!(unit instanceof ChazaqielSummon)) {
-       //     unit.setStamina(2);
-        //    }
+            unit.setStamina(2);
             unit.SetUsedAttack(false);
             unit.SetUsedTactical(false);
             unit.SetUsedGuard(false);
@@ -3022,6 +3020,17 @@ public class GameInterface {
                 CurrentAction = "Attack";
                 EndTurnButton.setText("Progress");
                 ApplyPlayer();
+                // new test to fix throw ???
+                WeaponCheck();
+                UpdateEffectCalc();
+                UpdateAttackTestLabels();
+                checkPotentialAttackEffect();
+                CurrentSubAction = "Basic Attack";
+                ClickedSector = null;
+                checkPotentialAttackEffect();
+                UpdatePlayerView();
+                ResetArrow();
+
                 // getting correct subscene
                 if (Unit instanceof Evangelion) {
                     showSubScene(AttackActionsSubSceneList.get(EvangelionList.indexOf(Unit)));
