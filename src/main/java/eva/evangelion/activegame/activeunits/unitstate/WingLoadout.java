@@ -33,6 +33,11 @@ public class WingLoadout implements Serializable {
     public boolean isSiegeFrame(){
         return loadout.equals(Loadout.SIEGE_FRAME);
     }
+    public boolean isTheWeapon(){
+        return loadout.equals(Loadout.ELECTROLASER);
+    }
+
+
     public boolean canStoreWeapon(){
         return !(loadout.equals(Loadout.NONE) || isSiegeFrame() || loadout.equals(Loadout.JERMOD));
     }

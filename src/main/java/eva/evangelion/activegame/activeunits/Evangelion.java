@@ -61,6 +61,9 @@ public class Evangelion extends BaseUnit {
             if (wing.hasWeapon()) wing.getItem().Reload();
         }
     }
+    public List<WingLoadout> getWings() {
+        return state.Wings;
+    }
 
     public WingLoadout getRightWing() {
         return state.Wings.get(0);
@@ -198,8 +201,18 @@ public class Evangelion extends BaseUnit {
         return false;
     }
 
+    public boolean WeaponIsAWing(Weapon weapon) {
+        List<WingLoadout> wings = this.getWings();
+        for (WingLoadout wing : wings) {
+            if (wing.isTheWeapon() && wing.getWeapon().equals(weapon)) return true;
+        }
+        return false;
+    }
+
+
     public boolean canDrop(Weapon weapon){
         if (WeaponInSiegeFrame(weapon)) return false;
+        if (WeaponIsAWing(weapon)) return false;
         if (weapon.ParentWeapon != null) return false;
         return !weapon.isIntrinsic();
     }
