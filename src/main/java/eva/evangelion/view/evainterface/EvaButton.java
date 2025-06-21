@@ -6,7 +6,9 @@ import javafx.scene.control.Tooltip;
 public class EvaButton extends Button {
 
 
-
+    public float realX;
+    public float realY;
+    public boolean hidden = false;
 
     public EvaButton(String text) {
         setText(text);
@@ -34,9 +36,26 @@ public class EvaButton extends Button {
     public void setPosition(float x, float y){
         this.setLayoutY(y);
         this.setLayoutX(x);
+        realX = x;
+        realY = y;
+
+    }
+    public void setLocation(float x, float y){
+        this.setLayoutY(y);
+        this.setLayoutX(x);
     }
 
-
+    public void hideButton() {
+        setLocation(10000, 10000);
+        hidden = true;
+    }
+    public void returnToLocation() {
+        setLocation(realX, realY);
+        hidden = false;
+    }
+    public boolean isButtonHidden() {
+        return hidden;
+    }
 
 
 }

@@ -35,6 +35,7 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
+import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 import kotlin.Triple;
@@ -76,6 +77,7 @@ public class GameInterface {
     private Stage menuStage;
     private Weapon CurrentChosenWeapon;
     private EvaButton EndTurnButton;
+    private EvaButton ConfirmButton;
     private List<EvaButton> SectorTypesButtons;
     private String filepath = EvaSaveUtil.getFilepath();
     private String savegamepath = EvaSaveUtil.getSaveGamePath();
@@ -401,6 +403,7 @@ public class GameInterface {
         PlayerName.setText(Player);
         gamePane.getChildren().add(PlayerName);
         createApplyNameButton("name", PlayerName);
+        createConirmButton();
         createEndTurnButton();
         startSaveFileWatcher();
         createUpdateTurnButton();
@@ -411,6 +414,19 @@ public class GameInterface {
         createHelpSubScene();
         createWoundSubScene();
         createDoubleEdgeCheckSubScene();
+        hideConifrmButton();
+
+        gameScene.addEventFilter(MouseEvent.MOUSE_CLICKED, event -> {
+            System.out.println("Click detected on: " + event.getTarget());
+            if (!(event.getTarget().equals(EndTurnButton)
+                  || (event.getTarget() instanceof Text
+                      && ((Text) event.getTarget()).getText().equals(EndTurnButton.getText())))
+                && !ConfirmButton.isButtonHidden()) {
+            hideConifrmButton();
+            }
+        });
+
+
 
         setUpSliders();
 
@@ -2444,15 +2460,45 @@ public class GameInterface {
             public void handle(ActionEvent event) {
                 if (CurrentPlayer == null) return;
                 if (CurrentPlayer.equals(CurrentState.Player) || CurrentAction.equals("GMApply")) {
+                    if (ConfirmButton.isButtonHidden()) showConifrmButton();
+                    System.out.println("End Turn button pressed");
+                }
+            }
+        });
+    }
+
+
+    private void createConirmButton() {
+        ConfirmButton = new EvaButton("Confirm?");
+        ConfirmButton.setPrefHeight(30);
+        ConfirmButton.setPrefWidth(110);
+        ConfirmButton.setPosition(20, 230);
+        gamePane.getChildren().add(ConfirmButton);
+        ConfirmButton.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                if (CurrentPlayer == null) return;
+                if (CurrentPlayer.equals(CurrentState.Player) || CurrentAction.equals("GMApply")) {
                     try {
                         EndTurn();
-                        } catch (IOException | ClassNotFoundException e) {
+                    } catch (IOException | ClassNotFoundException e) {
                         throw new RuntimeException(e);
                     }
                 }
             }
         });
     }
+
+
+    private void hideConifrmButton() {
+        ConfirmButton.hideButton();
+        System.out.println("Confirm button hidden");
+    }
+    private void showConifrmButton() {
+        ConfirmButton.returnToLocation();
+        System.out.println("Confirm button appears");
+    }
+
 
     int amogus = -1;
     private void EndTurn(boolean act) throws IOException, ClassNotFoundException {
