@@ -168,6 +168,7 @@ public final class EvaSaveUtil {
         Path path = Paths.get(filepath);
         Scanner scan = new Scanner(path);
         String Name = scan.nextLine();
+        if (Name.equals("Ammo")) return Weapon.Ammo();
         String profile = scan.nextLine();
         Weapon weapon = ReadWeaponProfile(EvaSaveUtil.getFilepath() + "/WeaponProfiles/"+profile+".txt");
         weapon.Name = Name;

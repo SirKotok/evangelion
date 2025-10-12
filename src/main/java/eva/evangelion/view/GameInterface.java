@@ -365,7 +365,6 @@ public class GameInterface {
             EvaMenuSubScene WeaponRequisition = new EvaMenuSubScene(4, 40, SizeDelta, 700);
             List<EvaButton> WeaponRequisitionMenuButtons = new ArrayList<>();
             createChooseWeaponButton("None", WeaponRequisitionMenuButtons);
-            createChooseWeaponButton("Ammo", WeaponRequisitionMenuButtons);
             for (String s : WeaponsNamesList) {
                 createChooseWeaponButton(s, WeaponRequisitionMenuButtons);
             }
@@ -1170,7 +1169,7 @@ public class GameInterface {
         return CurrentSubAction.equals("Blitz") || CurrentSubAction.equals("Full Auto");
     }
     private boolean isToss() {
-        return CurrentSubAction.equals("Toss");
+        if (CurrentSubAction != null) return CurrentSubAction.equals("Toss"); else return false;
     }
     private boolean isBlitz() {
         return CurrentSubAction.equals("Blitz");
