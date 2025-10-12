@@ -23,7 +23,7 @@ public class Angel extends BaseUnit{
         type.CalculateDisplay();
         this.state.toughness = type.ToughnessDisplay+angelstate.MaxToughnessDelta;
         UnitCircle = new Circle(10);
-        UnitCircle.setFill(Color.RED);
+        UnitCircle.setFill(Color.GREEN);
     }
     public void removeWeapon(Weapon w) {
         state.Weapons.remove(w);

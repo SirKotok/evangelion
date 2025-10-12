@@ -47,6 +47,7 @@ public class BattlefieldCreator {
     private TextField NameText = new TextField("Name");
     EvaLabel CurrentSectorLabel = new EvaLabel("Current Sector: Blank");
     private SectorType Blank = SectorType.Blank;
+    private SectorType Acid = SectorType.Acid;
     private SectorType CurrentSectorType;
     private Stage menuStage;
     private Pane viewport = new Pane();
@@ -66,7 +67,7 @@ public class BattlefieldCreator {
 
         SectorTypesList = new ArrayList<>();
         SectorTypesList.add(Blank);
-
+        SectorTypesList.add(Acid);
         CurrentSectorLabel.SetPosition(10, 5);
         creatorPane.getChildren().add(CurrentSectorLabel);
 

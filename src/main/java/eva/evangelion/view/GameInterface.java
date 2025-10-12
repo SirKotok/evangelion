@@ -47,14 +47,13 @@ import java.nio.file.Paths;
 import java.util.*;
 
 
-import static eva.evangelion.gameboard.SectorType.Blank;
-import static eva.evangelion.gameboard.SectorType.Destroyed;
-
 //Mawrak's edits
 // Add these imports:
 
 import javafx.geometry.Rectangle2D; // For Rectangle2D
 import javafx.stage.Screen;        // For Screen class
+
+import static eva.evangelion.gameboard.SectorType.*;
 
 
 public class GameInterface {
@@ -326,6 +325,7 @@ public class GameInterface {
         SectorTypesList = new ArrayList<>();
         SectorTypesList.add(Blank);
         SectorTypesList.add(Destroyed);
+        SectorTypesList.add(Acid);
         CurrentClickedLabel.SetPosition(150, 20);
         gamePane.getChildren().add(CurrentClickedLabel);
 
@@ -646,7 +646,7 @@ public class GameInterface {
         List<EvaButton> menu = new ArrayList<>();
 
         EvaButton LimitCutButton = createNervButton("Limit Cut", menu, null, 3, 0,"Use 3 Resources for +20 Reflexes; 50% to get Bruised");
-        LimitCutButton.setPosition(100, 140);
+        LimitCutButton.setPosition(100, 150);
         DefenceSubScene.getPane().getChildren().add(LimitCutButton);
 
         //TODO Defence help isnt programmed properly. It will work in game as it should, but will need to be fixed for main game. Anyone can use any powers when they shouldnt.
@@ -1613,6 +1613,7 @@ public class GameInterface {
         createActionTypeButton("Move", AngelMenuButtons, null);
         createSwitchWeaponButton("SwitchWeapon", AngelMenuButtons);
         createDevineStrengthButton("Devine Strength", AngelMenuButtons);
+        createActionTypeButton("Reset", AngelMenuButtons, null);
 //TODO angel buttons
      //   createSummonButton("Summon", AngelMenuButtons);
      //   createSplitButton("Split", AngelMenuButtons);
@@ -2287,7 +2288,7 @@ public class GameInterface {
 			PreviousAttack = name;
 			if (PreserveProgress && ClickedUnit != null && !getPlayerFromUnit(ClickedUnit).equals(CurrentPlayer))
 			{
-                    System.out.println("Preserve Progress");
+                    System.out.println("Preserve Progress "+ClickedUnit.getPlayerName());
 					setEndTurnButtonBasedOnAmmoAndStamina("Progress");
 			}
 			
@@ -2513,6 +2514,9 @@ public class GameInterface {
             if (getCurrentUnit().isTurnDone()) {
                 if (getCurrentUnit().getStamina() > 0 && !getCurrentUnit().getProhibitedActions().contains("Defend")) {
                     getCurrentUnit().AddEffect(CommonEffects.DefendEffect());
+                }
+                if (getCurrentUnit() instanceof Evangelion eva && GameBoard.getSector(eva.getX(), eva.getY()).getType().DealsDamageOnStanding > 0) {
+                   eva.dealDamage(Math.min(GameBoard.getSector(eva.getX(), eva.getY()).getType().DealsDamageOnStanding, eva.getToughness()-1));
                 }
                 getCurrentUnit().ConditionTickEffect(StateEffect.ExpirationCondition.TURN);
                 getCurrentUnit().ConditionTickEffect(StateEffect.ExpirationCondition.INTERVAL);
@@ -3334,7 +3338,8 @@ public class GameInterface {
                          UpdateCurrentLables();
                          System.out.println("Overheating check");
                      }
-                        BlowUpArea();
+                        if (AttackingUnit instanceof Evangelion)
+                        BlowUpArea(Destroyed); else BlowUpArea(Acid);
                         if (!AttackQueue.isEmpty()) {
                         System.out.println("Attack queue is empty");
                         CurrentAttack = AttackQueue.get(0);
@@ -4064,15 +4069,16 @@ public class GameInterface {
 
 
 
-    private void BlowUpSector(Sector sector) {
-        sector.setType(Destroyed);
+    private void BlowUpSector(Sector sector, SectorType type) {
+        sector.setType(type);
         for (WeaponObject w: getItemsOnLocation(sector)) {
             discard(w);
         }
     }
-    private void BlowUpArea() {
+
+    private void BlowUpArea(SectorType type) {
         for (Sector sector : BlowUpSectorList) {
-        BlowUpSector(sector);
+        BlowUpSector(sector, type);
         }
     }
 
@@ -4727,7 +4733,7 @@ public class GameInterface {
        //     }
             LastClickedUnit = ClickedUnit;
             if (display instanceof Evangelion evangelion) s = "Evangelion = "+ evangelion.state.PlayerName+"'s Evangelion, ";
-            if (display instanceof Angel) s = "Chazaqiel ";
+            if (display instanceof Angel) s = "Metatron ";
         }
         if (TargetObject != null) {
             System.out.println("Clicked item location: "+ClickedSector.x+" "+ClickedSector.y);

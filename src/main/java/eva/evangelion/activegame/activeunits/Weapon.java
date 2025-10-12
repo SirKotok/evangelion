@@ -852,12 +852,46 @@ public class Weapon implements Serializable {
     }
 
     public static Weapon getChazaquielRangedAttack() {
-        Weapon AngelRanged = new Weapon("AngelRanged", Weapon.Hand.NONE, 2, 6, 0, true, 4 ,8); // 2, 5
+        Weapon AngelRanged = new Weapon("CzRanged", Weapon.Hand.NONE, 2, 6, 0, true, 4 ,8); // 2, 5
         AngelRanged.AmmoCapacity = 100;
         AngelRanged.Reload();
         AngelRanged.makeIntrinsic();
         return AngelRanged;
     }
+
+    public static Weapon getMatatronLineAttack() {
+        Weapon AngelRanged = new Weapon("MetatronLine", Weapon.Hand.NONE, 2, 6, 1, true, 0,30); // 2, 5
+        AngelRanged.AmmoCapacity = 100;
+        AngelRanged.Reload();
+        AngelRanged.makeIntrinsic();
+        AngelRanged.Line = true;
+        AngelRanged.setATPower(true);
+        return AngelRanged;
+    }
+
+    public static Weapon getMatatronBombAttack() {
+        Weapon AngelRanged = new Weapon("MetatronBomb", Weapon.Hand.NONE, 1, 6, 1, true, 0,7); // 2, 5
+        AngelRanged.AmmoCapacity = 100;
+        AngelRanged.Reload();
+        AngelRanged.makeIntrinsic();
+        AngelRanged.Area = 4;
+        AngelRanged.setATPower(true);
+        return AngelRanged;
+    }
+
+
+    public static Weapon getMatatronBigBombAttack() {
+        Weapon AngelRanged = new Weapon("MetatronBigBomb", Weapon.Hand.NONE, 2, 6, 1, true, 0,10); // 2, 5
+        AngelRanged.AmmoCapacity = 100;
+        AngelRanged.Reload();
+        AngelRanged.makeIntrinsic();
+        AngelRanged.Area = 7;
+        AngelRanged.setATPower(true);
+        return AngelRanged;
+    }
+
+
+
     public static Weapon getAngelRangedAttack() {
         Weapon AngelRanged = new Weapon("AngelRanged", Weapon.Hand.NONE, 2, 6, 0, true, 2 ,5);
         AngelRanged.AmmoCapacity = 100;

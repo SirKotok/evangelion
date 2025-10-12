@@ -16,10 +16,16 @@ public class AngelState extends BaseState{
     public AngelState(String typeString) {
         super("GM", typeString);
         Weapons = new ArrayList<>();
-        Weapon AngelRanged = Weapon.getChazaquielRangedAttack();
+        Weapon AngelRanged = Weapon.getAngelRangedAttack();
         Weapon AngelMelee = Weapon.getAngelMeleeAttack();
+        Weapon MetatronLine = Weapon.getMatatronLineAttack();
+        Weapon MetatronBomb = Weapon.getMatatronBombAttack();
+        Weapon MetatronBigBomb = Weapon.getMatatronBigBombAttack();
         Weapons.add(AngelMelee);
         Weapons.add(AngelRanged);
+        Weapons.add(MetatronLine);
+        Weapons.add(MetatronBomb);
+        Weapons.add(MetatronBigBomb);
     }
 
 

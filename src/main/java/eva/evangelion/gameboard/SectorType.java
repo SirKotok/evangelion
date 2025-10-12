@@ -51,6 +51,9 @@ public class SectorType extends StackPane {
     public static SectorType Destroyed = new SectorType("Destroyed", Color.GRAY, true, false,
             false, 0, 0, 0,
             0, false, 0, 0, false, true);
+    public static SectorType Acid = new SectorType("Acid", Color.LIMEGREEN, true, false,
+            false, 0, 0, 3,
+            0, false, 0, 0, false, true);
 
 
 }
