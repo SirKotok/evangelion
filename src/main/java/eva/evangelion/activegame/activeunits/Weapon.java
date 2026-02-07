@@ -2,6 +2,7 @@ package eva.evangelion.activegame.activeunits;
 
 
 import eva.evangelion.activegame.activeunits.unitstate.StateEffect;
+import kotlin.Pair;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -27,7 +28,9 @@ public class Weapon implements Serializable {
     public int Area = -1;
     public int AreaPotential = -1;
 
-
+    public int StaminaCost = 0;
+    public int MultiAttack = 0;
+    public int MultiattackPenalty = 0;
     public int Defensive = 0;
     public int Penetration = 0;
     public int DefensivePotential = 0;
@@ -138,6 +141,8 @@ public class Weapon implements Serializable {
 
     }
 
+    public List<Pair<EvaPredicate, Property>> PredicatedProperties = new ArrayList<>();
+
     public Tech Technology = Tech.NONE;
     public Tech TechnologyBackup = Tech.NONE;
     public Tech Technology2 = Tech.NONE;
@@ -166,6 +171,20 @@ public class Weapon implements Serializable {
         MinRange = minRange;
         MaxRange = maxRange;
     }
+
+    public Weapon(String name, Hand hands, int diceNumber, int diceStrength, int power, boolean ranged, int minRange, int maxRange, int Ammo) {
+        Name = name;
+        Hands = hands;
+        DiceNumber = diceNumber;
+        DiceStrength = diceStrength;
+        Power = power;
+        Ranged = ranged;
+        MinRange = minRange;
+        MaxRange = maxRange;
+        AmmoCapacity = Ammo;
+        Reload();
+    }
+
 
     public String OriginalOwner = "";
 
@@ -832,7 +851,7 @@ public class Weapon implements Serializable {
     }
 
     public boolean isWeapon() {
-        return !isAmmo() && !isFree();
+        return !isAmmo() && !isFree() && !isOnlySub();
     }
 
     public boolean isAmmo() {
@@ -841,6 +860,10 @@ public class Weapon implements Serializable {
 
     public boolean isFree() {
         return Name.equals("Free");
+    }
+
+    public boolean isOnlySub() {
+        return isSubOnly;
     }
 
     public static Weapon getUnarmedAttack() {
@@ -857,6 +880,14 @@ public class Weapon implements Serializable {
         AngelRanged.Reload();
         AngelRanged.makeIntrinsic();
         return AngelRanged;
+    }
+
+    public boolean isSubOnly = false;
+
+    public static Weapon getSubOnly(String name, Hand hands) {
+        Weapon SubOnly = new Weapon(name, hands, 1, 6, 0, false);
+        SubOnly.isSubOnly = true;
+        return SubOnly;
     }
 
     public static Weapon getMatatronLineAttack() {

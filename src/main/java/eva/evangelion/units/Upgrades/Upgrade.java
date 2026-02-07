@@ -30,7 +30,7 @@ public class Upgrade {
     public int PotentialArea = -1;
     public int PotentialPenetration = 0;
 
-
+    public int NervDelta = 0;
     public final int RequisitionDelta;
 
     public final int UpgradesAvaliableDelta;

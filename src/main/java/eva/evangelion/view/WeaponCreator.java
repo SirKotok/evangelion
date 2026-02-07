@@ -27,7 +27,7 @@ public class WeaponCreator {
 
     public List<Weapon> WeaponProfileList = new ArrayList<>();
     private String filepath = EvaSaveUtil.getFilepath();
-    private String savepath = EvaSaveUtil.getSavepath()+"\\Weapons\\";
+    private String savepath = EvaSaveUtil.getSavepath()+"Weapons\\";
     public Weapon weapon = EvaSaveUtil.ReadWeaponProfile(filepath+"/WeaponProfiles/Knife.txt");
     public String Player;
     private AnchorPane creatorPane;

@@ -11,6 +11,5 @@ public class ATPower extends Upgrade{
            0, 0);
     }
    public Weapon ATWeapon;
-   public int StaminaCost;
 
 }

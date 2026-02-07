@@ -29,7 +29,7 @@ public class EvangelionCreator {
 
     public List<Upgrade> UpgradeList;
     private String filepath = EvaSaveUtil.getFilepath();
-    private String savepath = EvaSaveUtil.getSavepath()+"\\Evangelions\\";
+    private String savepath = EvaSaveUtil.getSavepath()+"Evangelions\\";
     public EvangelionType Eva;
 
     private AnchorPane creatorPane;

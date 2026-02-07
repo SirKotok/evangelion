@@ -1,30 +1,37 @@
 package eva.evangelion.util;
 
 import eva.evangelion.activegame.Gamestate;
+import eva.evangelion.activegame.activeunits.EvaPredicate;
 import eva.evangelion.activegame.activeunits.Weapon;
 import eva.evangelion.activegame.activeunits.unitstate.StateEffect;
 import eva.evangelion.activegame.activeunits.unitstate.WingLoadout;
 import eva.evangelion.gameboard.Battlefield;
+import eva.evangelion.gameboard.Sector;
 import eva.evangelion.gameboard.SectorType;
 import eva.evangelion.units.Types.AngelType;
 import eva.evangelion.units.Types.EvangelionType;
 import eva.evangelion.units.Upgrades.ATPower;
 import eva.evangelion.units.Upgrades.Upgrade;
 import javafx.scene.paint.Color;
+import kotlin.Pair;
 import kotlin.Triple;
 
 import java.io.*;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
+import static eva.evangelion.gameboard.SectorType.*;
+
 public final class EvaSaveUtil {
 
-    public static String savepath = "C:\\Users\\katya\\Desktop\\GameEva";
-    public static String savegamepath = "C:\\Users\\katya\\Desktop\\GameEva\\EvaBox\\Dropbox\\";
+    public static String savepath = "C:\\Users\\2\\Desktop\\EvangelionJava\\";
+    public static String savegamepath = "C:\\Users\\2\\Desktop\\EvangelionJava\\EvaBox\\Dropbox\\";
     public static String getFilepath() throws IOException {
-        return getSavepath().replace("\\", "/");
+        String str = getSavepath().replace("\\", "/");
+        return str.substring(0, str.length()-1);
     }
 
     public static String getSavepath()  {
@@ -36,7 +43,6 @@ public final class EvaSaveUtil {
         return s;
         }
         catch (RuntimeException | IOException ignored) {
-
         }
         return savepath;
     }
@@ -53,6 +59,30 @@ public final class EvaSaveUtil {
         }
         return savegamepath;
     }
+
+    public static void WriteLogFile(String S) throws IOException {
+        File localfile = new File(getSavepath()+"LocalLog"+".txt");
+        File boxfile = new File(getSaveGamePath()+"BoxLog"+".txt");
+        if (!localfile.exists()) localfile.createNewFile();
+        if (!boxfile.exists()) boxfile.createNewFile();
+
+
+
+        FileWriter writelocal = new FileWriter(localfile, true);
+        PrintWriter linewriterlocal = new PrintWriter(writelocal);
+        linewriterlocal.println(S);
+        linewriterlocal.close();
+        writelocal.close();
+
+        FileWriter writebox = new FileWriter(boxfile, true);
+        PrintWriter linewriterbox = new PrintWriter(writebox);
+        linewriterbox.println(S);
+        linewriterbox.close();
+        writebox.close();
+
+    }
+
+
 
     //  public void SaveUpgrade(Upgrade upgrade, String Path) throws IOException {
   //      String name = upgrade.Name;
@@ -72,6 +102,9 @@ public final class EvaSaveUtil {
                 float g = Float.parseFloat(scan.nextLine());
                 float b = Float.parseFloat(scan.nextLine());
                 Eva.EvaColor = new Color(r, g, b, 1);
+            }
+            if (s.equals("Signature_Weapon")) {
+                Eva.SignatureWeapon = scan.nextLine();
             }
             if (UpgradeNames.contains(s)) {
                 Upgrade upgrade = ReadStringUpgrade(s);
@@ -107,16 +140,38 @@ public final class EvaSaveUtil {
         Scanner scan = new Scanner(path);
         scan.nextLine();
         Battlefield field = new Battlefield(Integer.parseInt(scan.nextLine()), Integer.parseInt(scan.nextLine()));
+        File folder = new File(getFilepath()+"/SectorTypes");
+        File[] listoffiles = folder.listFiles();
+        System.out.println("Opened folder "+folder.getAbsolutePath());
+        System.out.println("List has files: "+listoffiles != null);
+        List<SectorType> SectorTypesList = new ArrayList<>();
+        SectorTypesList.add(Blank);
+        SectorTypesList.add(Destroyed);
+        SectorTypesList.add(Wall);
+        SectorTypesList.add(Acid);
+        for (int m = 0; m < listoffiles.length; m++) {
+            if (listoffiles[m].isFile()) {
+                SectorTypesList.add(EvaSaveUtil.ReadSectorType(listoffiles[m].getAbsolutePath()));
+            }
+        }
         while (scan.hasNextLine()) {
             String s = scan.nextLine();
+            SectorType type = Blank;
+            for (SectorType sectorType : SectorTypesList) {
+                if (s.equals(sectorType.Name)) type = sectorType;
+            }
             int x = Integer.parseInt(scan.nextLine());
             int y = Integer.parseInt(scan.nextLine());
-            Triple<Integer, Integer, String> triple = new Triple<>(x, y, s);
+            Triple<Integer, Integer, SectorType> triple = new Triple<>(x, y, type);
             field.SpecialTiles.add(triple);
         }
         scan.close();
         return field;
     }
+
+
+
+
     public static void SaveBattlefield(String filepath, String name, Battlefield battlefield) throws IOException {
         File savefile = new File(filepath+name+".txt");
         if (savefile.exists()) savefile.delete();
@@ -126,8 +181,8 @@ public final class EvaSaveUtil {
         linewriter.println(name);
         linewriter.println(battlefield.sizeX);
         linewriter.println(battlefield.sizeY);
-        for (Triple<Integer, Integer, String> triple : battlefield.SpecialTiles) {
-            linewriter.println(triple.getThird());
+        for (Triple<Integer, Integer, SectorType> triple : battlefield.SpecialTiles) {
+            linewriter.println(triple.getThird().Name);
             linewriter.println(triple.getFirst());
             linewriter.println(triple.getSecond());
         }
@@ -170,6 +225,7 @@ public final class EvaSaveUtil {
         String Name = scan.nextLine();
         if (Name.equals("Ammo")) return Weapon.Ammo();
         String profile = scan.nextLine();
+        if (!profile.equals("ATPower")) {
         Weapon weapon = ReadWeaponProfile(EvaSaveUtil.getFilepath() + "/WeaponProfiles/"+profile+".txt");
         weapon.Name = Name;
         weapon.Technology = Weapon.Tech.valueOf(scan.nextLine());
@@ -184,8 +240,34 @@ public final class EvaSaveUtil {
                 weapon.getSubWeapon().Technology = Weapon.Tech.valueOf(scan.nextLine());
             }
         }
-        scan.close();
-        return weapon;
+            scan.close();
+            return weapon;
+        } else {
+            int handsint = Integer.parseInt(scan.nextLine());
+            Weapon.Hand hand = Weapon.Hand.NONE;
+            switch (handsint) {
+                case 1 -> hand = Weapon.Hand.ONE_HANDED;
+                case 2 -> hand = Weapon.Hand.TWO_HANDED;
+            }
+            Weapon weapon = Weapon.getSubOnly(Name, hand);
+            weapon.addSubWeapon(ReadWeaponProfile(EvaSaveUtil.getFilepath() + "/AdditionalWeapons/"+scan.nextLine()+".txt"));
+            weapon.Hands.equals(weapon.getSubWeapon().Hands);
+            weapon.Cost = weapon.getSubWeapon().getCost();
+            weapon.getSubWeapon().Technology = Weapon.Tech.valueOf(scan.nextLine());
+            while (scan.hasNextLine()) {
+                String s = scan.nextLine();
+                weapon.CurrentCustomisations.add(Weapon.Customisation.valueOf(s));
+                if (s.equals(Weapon.Customisation.DOUBLE_EDGED.name())) {
+                    weapon.Technology2 = Weapon.Tech.valueOf(scan.nextLine());
+                }
+                if (s.equals(Weapon.Customisation.ENHANCED_BAYONET.name()) || s.equals(Weapon.Customisation.BAYONET.name())) {
+                    weapon.addSubWeapon(ReadWeaponProfile(EvaSaveUtil.getFilepath() + "/WeaponProfiles/"+scan.nextLine()+".txt"));
+                    weapon.getSubWeapon().Technology = Weapon.Tech.valueOf(scan.nextLine());
+                }
+            }
+            scan.close();
+            return weapon;
+        }
     }
 
 
@@ -216,11 +298,23 @@ public final class EvaSaveUtil {
             weapon.MaxRange = Integer.parseInt(scan.nextLine());
             weapon.AmmoCapacity = Integer.parseInt(scan.nextLine());
         }
-
-
         while (scan.hasNextLine()) {
           String Property = scan.nextLine();
           switch (Property){
+              case "Predicate" -> {
+                  List<EvaPredicate.Condition> conditions = new ArrayList<>();
+                  while (scan.hasNextLine()) {
+                      String St = scan.nextLine();
+                      if (St.equals("PredicateEnd")) {
+                          weapon.PredicatedProperties.add(new Pair<>(new EvaPredicate(conditions), Weapon.Property.valueOf(scan.nextLine())));
+                          break;
+                      } else conditions.add(EvaPredicate.Condition.valueOf(St));
+                  }
+              }
+              case "ATPower" -> {
+                  weapon.ATPower = true;
+                  weapon.StaminaCost = Integer.parseInt(scan.nextLine());
+              }
               case "Area" -> {weapon.Area+=1+Integer.parseInt(scan.nextLine());}
               case "ArmorPiercing" -> {weapon.makeArmorPiercing();}
               case "Defensive" -> {weapon.Defensive+=Integer.parseInt(scan.nextLine());}
@@ -228,7 +322,15 @@ public final class EvaSaveUtil {
                   int x = Integer.parseInt(scan.nextLine());
                   weapon.Penetration+=x;
               }
-              case "Line" -> {weapon.Line = true;}
+              case "Multiattack" -> {
+                  int x = Integer.parseInt(scan.nextLine());
+                  weapon.MultiAttack+=x;
+                  int y = Integer.parseInt(scan.nextLine());
+                  weapon.MultiattackPenalty+=y;
+              }
+              case "Line" -> {
+                  weapon.Line = true;
+              }
               case "Grapple" -> {weapon.makeGrapple();}
               case "Intrinsic" -> {weapon.makeIntrinsic();}
               case "Precise" -> {weapon.makePrecise();}
@@ -264,10 +366,8 @@ public final class EvaSaveUtil {
         boolean Passive = Boolean.parseBoolean(scan.nextLine());
         if (!Passive) {
             ATPower power = new ATPower(Name);
-            scan.nextLine();
-            power.ATWeapon = ReadWeaponProfile(EvaSaveUtil.getFilepath() + "/AdditionalWeapons/"+scan.nextLine()+".txt");
-            power.ATWeapon.setATPower(true);
-            power.StaminaCost = Integer.parseInt(scan.nextLine());
+            String isweapon = scan.nextLine();
+            if (isweapon.equals("Weapon")) power.ATWeapon = ReadWeaponProfile(EvaSaveUtil.getFilepath() + "/AdditionalWeapons/"+scan.nextLine()+".txt");
             return power;
         }
 
@@ -285,17 +385,15 @@ public final class EvaSaveUtil {
         int SpeedDelta = Integer.parseInt(scan.nextLine());
         int RequisitionDelta = Integer.parseInt(scan.nextLine());
         int UpgradesAvaliableDelta = Integer.parseInt(scan.nextLine());
-
-
-
         int AccuracyDeltaPredicated = Integer.parseInt(scan.nextLine());
-        int  AttackStrengthDeltaPredicated = Integer.parseInt(scan.nextLine());
+        int AttackStrengthDeltaPredicated = Integer.parseInt(scan.nextLine());
         int ToughnessDeltaPredicated = Integer.parseInt(scan.nextLine());
         int ArmorDeltaPredicated = Integer.parseInt(scan.nextLine());
         int ReflexesDeltaPredicated = Integer.parseInt(scan.nextLine());
         int SpeedDeltaPredicated = Integer.parseInt(scan.nextLine());
         int RequisitionDeltaPredicated = Integer.parseInt(scan.nextLine());
-        int  UpgradesAvaliableDeltaPredicated = Integer.parseInt(scan.nextLine());
+        int UpgradesAvaliableDeltaPredicated = Integer.parseInt(scan.nextLine());
+
         Upgrade upg =  new Upgrade(Name, Passive, PredicatedPassive, WeaponPassive, Active,
                 AccuracyDelta, AttackStrengthDelta, ToughnessDelta, ArmorDelta, ReflexesDelta, SpeedDelta, RequisitionDelta,
                 UpgradesAvaliableDelta, AccuracyDeltaPredicated, AttackStrengthDeltaPredicated, ToughnessDeltaPredicated,
@@ -328,6 +426,10 @@ public final class EvaSaveUtil {
                 }
             } else {
             String s = scan.nextLine();
+            if (s.equals("NervResources")) {
+                upg.NervDelta = Integer.parseInt(scan.nextLine());
+                System.out.println("Nerv Delta of "+upg.Name+" = "+upg.NervDelta);
+            }
             if (s.equals("Wing")) {
                 WingLoadout Wing = new WingLoadout();
                 String ss = scan.nextLine().toUpperCase().replace(" ", "_");

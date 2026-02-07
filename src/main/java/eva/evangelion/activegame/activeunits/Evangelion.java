@@ -28,7 +28,7 @@ public class Evangelion extends BaseUnit {
         return state.ATP;
     }
 
-    public Evangelion(EvangelionState evastate, EvangelionType type) {
+    public Evangelion(EvangelionState evastate, EvangelionType type) throws IOException {
         this.state = evastate;
         this.type = type;
         type.CalculateDisplay();
@@ -36,13 +36,16 @@ public class Evangelion extends BaseUnit {
         SetWings();
         if (this.state.toughness == -1) this.state.toughness = getMaxToughness();
         if (this.state.Requisition == -1) this.state.Requisition = type.RequisitionDisplay;
+        this.state.nerv = type.NervResourcesDisplay;
+
+        if (!this.type.SignatureWeapon.equals("") && !this.isSetUp()) {
+            this.SetUpPutItemToLocation(this.type.SignatureWeapon);
+            System.out.println("Put item into Eva on creation "+this.state.PlayerName+" - "+this.type.SignatureWeapon);
+        }
+
+        System.out.println("Created Eva "+this.state.PlayerName+" with "+this.state.nerv+" resources");
         UnitCircle = new Circle(10);
         UnitCircle.setFill(type.EvaColor);
-
-     //   StateEffect debug = new StateEffect("debugtest");
-    //    debug.ProhibitedActions.add("Aim");
-     //   debug.AdditionalEffects.add(CommonEffects.Prone());
-    //    AddEffect(debug);
 
     }
     public int getMaxRange(Weapon weapon) {
@@ -223,10 +226,12 @@ public class Evangelion extends BaseUnit {
     }
 
     public Weapon NextWeapon(Weapon weapon) {
+        System.out.println("Changing weapon to Next");
         if (weapon == null) {
             return state.Weapons.isEmpty() ? null : state.Weapons.get(0);
         }
-        if (weapon.hasSubWeapon()) {
+        if (weapon.hasSubWeapon() && !weapon.getSubWeapon().isATPower()) {
+            System.out.println("It had sub weapon! changed to sub");
             return weapon.getSubWeapon();
         }
 
@@ -250,7 +255,9 @@ public class Evangelion extends BaseUnit {
         while (x <= checkWeapons.size()) {
             int nextIndex = (startIndex + x) % checkWeapons.size();
             w2 = checkWeapons.get(nextIndex);
-            if (!w2.isFree()) {
+            System.out.println("checking "+w2.Name);
+            if (!w2.isFree() && !w2.isATPower()) {
+                System.out.println("Choosing "+w2.Name);
                 break;
             }
             x++;
@@ -388,6 +395,7 @@ public class Evangelion extends BaseUnit {
         return null;
     }
     public void SetUpPutItemToLocation(String s) throws IOException {
+        System.out.println("Putting item "+s+" to location");
         String s1 = getSetUpLocationString();
         Weapon item = EvaSaveUtil.ReadStringWeapon(s);
         item.Reload();
@@ -415,7 +423,33 @@ public class Evangelion extends BaseUnit {
             }
         }
     }
-
+    public void SetUpPutItemToLocation(Weapon item) {
+        String s1 = getSetUpLocationString();
+        item.Reload();
+        int Cost = item.getCost();
+        if (s1.equals("Set Right Hand Item ")) {
+            state.Requisition-=Cost;
+            state.setRightHandWeapon(item); return;
+        }
+        if (s1.equals("Set Left Hand Item ")) {
+            state.Requisition-=Cost;
+            state.setLeftHandWeapon(item); return;
+        }
+        if (s1.equals("Set Third Hand Item ")) {
+            state.Requisition-=Cost;
+            state.setThirdHandWeapon(item); return;
+        }
+        for (WingLoadout wingLoadout : state.Wings) {
+            if (wingLoadout.canStoreWeapon() && wingLoadout.getItem() == null) {
+                if (wingLoadout.isStorage()) {
+                    Cost = Math.max(0, Cost-1);
+                }
+                state.Requisition-=Cost;
+                wingLoadout.setItem(item);
+                return;
+            }
+        }
+    }
 
     public Weapon getLeftHandItem(){
         return state.getLeftHandWeapon();

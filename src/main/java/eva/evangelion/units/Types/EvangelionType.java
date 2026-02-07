@@ -1,5 +1,6 @@
 package eva.evangelion.units.Types;
 
+import eva.evangelion.activegame.activeunits.Weapon;
 import eva.evangelion.activegame.activeunits.unitstate.StateEffect;
 import eva.evangelion.activegame.activeunits.unitstate.WingLoadout;
 import eva.evangelion.units.Upgrades.ATPower;
@@ -33,6 +34,10 @@ public class EvangelionType {
     public final int BaseRangedRange = 0;
     public final int BaseMeleeRange = 0;
 
+    public int BaseNervResources = 0;
+    public int NervResourcesDisplay;
+    public int NervResourcesNext;
+
     public int AccuracyDisplay;
     public int AccuracyNext;
     public int AttackStrengthDisplay;
@@ -57,20 +62,20 @@ public class EvangelionType {
     public List<String> CurrentUpgradeNames;
     public List<Upgrade> ChosenUpgrades;
     public List<StateEffect> SpreadPatterns = new ArrayList<>();
+    public String SignatureWeapon = "";
 
     public EvangelionType(){
         CurrentUpgrades = new ArrayList<>();
         CurrentUpgradeNames = new ArrayList<>();
         ChosenUpgrades = new ArrayList<>();
-
         setDisplaytoBase();
         setNexttoBase();
-
     }
 
 
     public void setNexttoBase(){
         AccuracyNext = BaseAccuracy;
+        NervResourcesNext = BaseNervResources;
         AttackStrengthNext = BaseAttackStrength;
         ToughnessNext = BaseToughness;
         ArmorNext = BaseArmor;
@@ -81,6 +86,7 @@ public class EvangelionType {
     }
     public void setDisplaytoBase(){
         AccuracyDisplay = BaseAccuracy;
+        NervResourcesDisplay = BaseNervResources;
         AttackStrengthDisplay = BaseAttackStrength;
         ToughnessDisplay = BaseToughness;
         ArmorDisplay = BaseArmor;
@@ -93,6 +99,7 @@ public class EvangelionType {
 
     public void ApplyUpgradeToNext(Upgrade upgrade){
         AccuracyNext += upgrade.AccuracyDelta;
+        NervResourcesNext +=upgrade.NervDelta;
         AttackStrengthNext += upgrade.AttackStrengthDelta;
         ToughnessNext += upgrade.ToughnessDelta;
         ArmorNext += upgrade.ArmorDelta;
@@ -104,6 +111,7 @@ public class EvangelionType {
 
     public void ApplyUpgradeToDisplay(Upgrade upgrade){
         AccuracyDisplay+=upgrade.AccuracyDelta;
+        NervResourcesDisplay +=upgrade.NervDelta;
         AttackStrengthDisplay += upgrade.AttackStrengthDelta;
         ToughnessDisplay += upgrade.ToughnessDelta;
         ArmorDisplay += upgrade.ArmorDelta;

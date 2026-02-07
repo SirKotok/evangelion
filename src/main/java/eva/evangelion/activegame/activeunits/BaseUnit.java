@@ -15,6 +15,7 @@ public class BaseUnit {
     public int getUnitStrength(Weapon w) {
         return 0;
     }
+
     public void hurt(Attack attack){
 
     }
@@ -27,6 +28,7 @@ public class BaseUnit {
 
     public boolean canDrop(Weapon weapon){
         if (weapon.ParentWeapon != null) return false;
+        if (weapon.isATPower()) return false;
         return !weapon.isIntrinsic();
     }
 

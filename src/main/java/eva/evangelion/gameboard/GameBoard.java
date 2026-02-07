@@ -64,19 +64,115 @@ public class GameBoard {
             ChangeColor(sector);
         }
     }
+    public void fakeColors(BaseUnit unit){
+        for (Sector sector : sectors) {
+            if (!sector.type.EnemyCanSee) {
+                if (sector.type.Creator.equals("GM")) {
+                    if (!unit.getPlayerName().equals("GM")) {
+                        FakeColor(sector);
+                    }
+                } else {
+                    if (unit.getPlayerName().equals("GM")) {
+                        FakeColor(sector);
+                    }
+                }
+            }
 
-    public void ShowPossibleMovementPositions(BaseUnit Eva, String s){
-        if (s.equals("Maneuver")) {
-            for (Sector sector : sectors) {
-                if (isPossibleReachLocation(sector, Eva, 1)) {
-                sector.setBackground(new Background(new BackgroundFill(Color.YELLOW, CornerRadii.EMPTY, Insets.EMPTY)));
-            } else ChangeColor(sector);
-        }} else for (Sector sector : sectors) {
-            if (isPossibleMovementLocation(sector, Eva) && (!s.equals("Take Cover") || CoverCheck(sector))) {
-                sector.setBackground(new Background(new BackgroundFill(Color.YELLOW, CornerRadii.EMPTY, Insets.EMPTY)));
-            } else if (isPossibleDoubleLocation(sector, Eva) && (!s.equals("Take Cover") || CoverCheck(sector))) {
-                sector.setBackground(new Background(new BackgroundFill(Color.ORANGE, CornerRadii.EMPTY, Insets.EMPTY)));
-            } else ChangeColor(sector);
+        }
+    }
+
+    private void FakeColor(Sector sector) {
+        if (sector.getType().originaltype != null) sector.setBackground(new Background(new BackgroundFill(sector.getType().originaltype.getColor(), CornerRadii.EMPTY, Insets.EMPTY)));
+    }
+
+    public void ShowPossibleMovementPositions(BaseUnit Eva, String s) {
+        switch (s) {
+            case "Maneuver" -> {
+                for (Sector sector : sectors) {
+                    if (isPossibleReachLocation(sector, Eva, 1) && sector.type.CanMoveTo) {
+                        setYellowBorder(sector);
+                    } else {
+                        ChangeColor(sector);
+                    }
+                }
+            }
+            case "Reposition" -> {
+                for (Sector sector : sectors) {
+                    if (isPossibleReachLocation(sector, Eva, 3) && sector.type.CanMoveTo) {
+                        setYellowBorder(sector);
+                    } else {
+                        ChangeColor(sector);
+                    }
+                }
+            }
+            default -> {
+                for (Sector sector : sectors) {
+                    if (isPossibleMovementLocation(sector, Eva) && (!s.equals("Take Cover") || CoverCheck(sector))  && sector.type.CanMoveTo) {
+                        setYellowBorder(sector);
+                    } else if (isPossibleDoubleLocation(sector, Eva) && (!s.equals("Take Cover") || CoverCheck(sector))  && sector.type.CanMoveTo) {
+                        setOrangeBorder(sector);
+                    } else {
+                        ChangeColor(sector);
+                    }
+                }
+            }
+        }
+    }
+
+    // Helper method to set yellow border with default background
+    private void setYellowBorder(Sector sector) {
+        if (sector.getType() != null) {
+            // Set the background to the type's color with a yellow border
+            sector.setBackground(new Background(new BackgroundFill(
+                    sector.getType().getColor(),
+                    CornerRadii.EMPTY,
+                    Insets.EMPTY
+            )));
+
+            // Add a yellow border
+            sector.setBorder(new Border(new BorderStroke(
+                    Color.YELLOW,
+                    BorderStrokeStyle.SOLID,
+                    CornerRadii.EMPTY,
+                    new BorderWidths(1.2) // Border thickness
+            )));
+        }
+    }
+
+    // Helper method to set orange border with default background
+    private void setOrangeBorder(Sector sector) {
+        if (sector.getType() != null) {
+            // Set the background to the type's color with an orange border
+            sector.setBackground(new Background(new BackgroundFill(
+                    sector.getType().getColor(),
+                    CornerRadii.EMPTY,
+                    Insets.EMPTY
+            )));
+
+            // Add an orange border
+            sector.setBorder(new Border(new BorderStroke(
+                    Color.ORANGE,
+                    BorderStrokeStyle.SOLID,
+                    CornerRadii.EMPTY,
+                    new BorderWidths(1.2) // Border thickness
+            )));
+        }
+    }
+
+    public void ChangeColor(Sector sector) {
+        if (sector.getType() != null) {
+            // Reset to default: background only, no border
+            sector.setBackground(new Background(new BackgroundFill(
+                    sector.getType().getColor(),
+                    CornerRadii.EMPTY,
+                    Insets.EMPTY
+            )));
+            sector.setBorder(new Border(new BorderStroke(
+                    Color.BLACK,
+                    BorderStrokeStyle.SOLID,
+                    CornerRadii.EMPTY,
+                    new BorderWidths(0.5) // Border thickness
+            ))); // Remove any border
         }
     }
 
@@ -93,15 +189,90 @@ public class GameBoard {
         for (Sector sector : sectors) {
             if (isFogged(sector, evangelion, FogNumber)) {
                 sector.setBackground(new Background(new BackgroundFill(Color.DARKGRAY, CornerRadii.EMPTY, Insets.EMPTY)));
+                sector.setBorder(new Border(new BorderStroke(
+                        Color.BLACK,
+                        BorderStrokeStyle.SOLID,
+                        CornerRadii.EMPTY,
+                        new BorderWidths(0.5) // Border thickness
+                )));
             }
         }
         }
     }
 
 
-    public boolean isFogged(Sector sector, Evangelion eva, int FogNumber){
+    public boolean isFogged(Sector sector, Evangelion eva, int FogNumber) {
         if (eva == null) return false;
-        return !EvaCalculationUtil.isInRange(eva, sector, FogNumber);
+
+        // First check: is it in range?
+        boolean FoggedByDefault = !EvaCalculationUtil.isInRange(eva, sector, FogNumber);
+        if (FoggedByDefault) return true;
+
+        int x0 = eva.getX();
+        int y0 = eva.getY();
+        int x1 = sector.x;
+        int y1 = sector.y;
+
+        // Try direct line of sight first
+        if (hasDirectLineOfSight(x0, y0, x1, y1)) {
+            return false; // Visible
+        }
+
+        // If direct line is blocked, try corner peeking
+        // Check if target is adjacent to an empty space that we can see
+        for (int dx = -1; dx <= 1; dx++) {
+            for (int dy = -1; dy <= 1; dy++) {
+                if (dx == 0 && dy == 0) continue;
+
+                int adjX = x1 + dx;
+                int adjY = y1 + dy;
+
+                // Check if adjacent cell exists and is passable
+                Sector adjacent = this.getSector(adjX, adjY);
+                if (adjacent != null && adjacent.type.CanPassThrough) {
+                    if (hasDirectLineOfSight(x0, y0, adjX, adjY)) {
+                        return false; // Can see around corner
+                    }
+                }
+            }
+        }
+
+        return true; // Fogged
+    }
+
+    private boolean hasDirectLineOfSight(int x0, int y0, int x1, int y1) {
+        int dx = Math.abs(x1 - x0);
+        int dy = Math.abs(y1 - y0);
+        int sx = (x0 < x1) ? 1 : -1;
+        int sy = (y0 < y1) ? 1 : -1;
+        int err = dx - dy;
+
+        int x = x0;
+        int y = y0;
+
+        while (true) {
+            // Skip checking the starting cell
+            if (!(x == x0 && y == y0)) {
+                Sector currentSector = this.getSector(x, y);
+                if (currentSector != null && !currentSector.type.CanPassThrough) {
+                    return false; // Blocked by wall
+                }
+            }
+
+            if (x == x1 && y == y1) break;
+
+            int e2 = 2 * err;
+            if (e2 > -dy) {
+                err -= dy;
+                x += sx;
+            }
+            if (e2 < dx) {
+                err += dx;
+                y += sy;
+            }
+        }
+
+        return true; // Clear line of sight
     }
 
     public boolean CoverCheck(Sector sector) {
@@ -293,9 +464,7 @@ public class GameBoard {
 
 
 
-    public void ChangeColor(Sector sector){
-            if (sector.getType() != null) sector.setBackground(new Background(new BackgroundFill(sector.getType().color, CornerRadii.EMPTY, Insets.EMPTY)));
-    }
+
     public void setType(Sector sector, SectorType type){
         sector.setType(type);
         ChangeColor(sector);

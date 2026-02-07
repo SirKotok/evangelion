@@ -24,5 +24,10 @@ public class Sector extends StackPane {
         return this.type;
     }
 
+    public String getLocation() {
+        return "Sector ("+x+","+y+")";
+    }
+
+
 
 }

@@ -26,6 +26,7 @@ public class BaseState  implements Serializable {
 
     public int Fate = 5;
     public int Doom = 5;
+    public int nerv = -1;
     public int MaxToughnessDelta = 0;
     public boolean UsedGuard = false;
     public boolean UsedRedundantOrgans = false;

@@ -1,5 +1,6 @@
 package eva.evangelion.util;
 
+import eva.evangelion.activegame.activeunits.Evangelion;
 import eva.evangelion.activegame.activeunits.unitstate.CommonEffects;
 import eva.evangelion.activegame.activeunits.unitstate.StateEffect;
 
@@ -14,11 +15,14 @@ public class EvaWoundDeterminer {
         }
     }
 
-    public static WoundResult determineWounds(int hitLocation, int woundLevel) {
+    public static WoundResult determineWounds(Evangelion eva, int hitLocation, int woundLevel) {
         String bodyPart = determineBodyPart(hitLocation);
         StateEffect newWound = getWoundEffect(bodyPart, woundLevel);
-        StateEffect reducedWound = woundLevel > 0 ? getWoundEffect(bodyPart, woundLevel - 1) : CommonEffects.NoEffect();
-        return new WoundResult(newWound, reducedWound);
+        if (eva.type.CurrentUpgradeNames.contains("Spontaneous_Regeneration") && woundLevel > 1) {
+            StateEffect reducedWound = woundLevel > 1 ? getWoundEffect(bodyPart, woundLevel - 2) : CommonEffects.NoEffect();
+            return new WoundResult(newWound, reducedWound);
+        } else {StateEffect reducedWound = woundLevel > 0 ? getWoundEffect(bodyPart, woundLevel - 1) : CommonEffects.NoEffect();
+        return new WoundResult(newWound, reducedWound); }
     }
 
     private static String determineBodyPart(int hitLocation) {

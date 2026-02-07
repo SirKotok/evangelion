@@ -298,7 +298,7 @@ public class MainMenu {
             @Override
             public void handle(ActionEvent event) {
                 try {
-                BattlefieldCreator EvaManager = new BattlefieldCreator();
+                BattlefieldCreatorTwo EvaManager = new BattlefieldCreatorTwo();
 
                     EvaManager.createNewMaker(mainStage, new Battlefield(30, 30));
                 } catch (IOException e) {

@@ -21,9 +21,10 @@ public class Angel extends BaseUnit{
         this.state = angelstate;
         this.type = type;
         type.CalculateDisplay();
+        if (state.toughness == -1)
         this.state.toughness = type.ToughnessDisplay+angelstate.MaxToughnessDelta;
         UnitCircle = new Circle(10);
-        UnitCircle.setFill(Color.GREEN);
+        UnitCircle.setFill(Color.FIREBRICK);
     }
     public void removeWeapon(Weapon w) {
         state.Weapons.remove(w);
@@ -76,6 +77,9 @@ public class Angel extends BaseUnit{
     }
 
     public int getUnitStrength(Weapon w) {
+        if (w == null) {
+            return state.MeleeStrengthDelta+type.MeleeStrengthDisplay;
+        }
         if (w.Ranged) return state.RangedStrengthDelta+type.RangedStrengthDisplay;
         else return state.MeleeStrengthDelta+type.MeleeStrengthDisplay;
     }

@@ -20,7 +20,7 @@ public class Gamestate implements Serializable {
     public List<Weapon> Weapons;
     public String Phase;
     public int Round;
-    public int NervResources = 5;
+    public int NervResources = 0;
     public int Fog = -1;
     public String Player;
     public Action Action;

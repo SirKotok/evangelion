@@ -11,7 +11,7 @@ public class Battlefield implements Serializable {
 
     public int sizeX;
     public int sizeY;
-    public List<Triple<Integer, Integer, String>> SpecialTiles = new ArrayList<>();
+    public List<Triple<Integer, Integer, SectorType>> SpecialTiles = new ArrayList<>();
     public Battlefield(int Xsize, int Ysize){
         sizeX = Xsize;
         sizeY = Ysize;
