@@ -29,6 +29,7 @@ import javafx.event.EventTarget;
 import javafx.geometry.Orientation;
 import javafx.scene.Scene;
 import javafx.scene.control.Slider;
+import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.input.MouseEvent;
@@ -58,7 +59,7 @@ import static eva.evangelion.gameboard.SectorType.*;
 
 
 public class GameInterface {
-
+    private TextArea gmConsoleOutput;
     private String LogString;
     List<EvaButton> ATPowers = new ArrayList<>();
     private Battlefield Battlefield;
@@ -174,7 +175,8 @@ public class GameInterface {
     private StateEffect ReducedWound = null;
     private List<EvaLabel> statLabels;
     public int FogNumber = -1;
-
+    private TextArea globalMessageArea;
+    private int viewportHeight; // to position the message area
     public boolean IgnoreAtkOfOp = false;
 
     private TextField GMEffectName = new TextField("Effect");
@@ -357,7 +359,7 @@ public class GameInterface {
         CurrentClickedLabel.SetPosition(150, 20);
         gamePane.getChildren().add(CurrentClickedLabel);
 
-        TurnOrderLabel.SetPosition(150, 5);
+        TurnOrderLabel.SetPosition(350, 5);
         gamePane.getChildren().add(TurnOrderLabel);
 
 
@@ -460,6 +462,24 @@ public class GameInterface {
 
         setUpSliders();
 
+// Global message area
+        globalMessageArea = new TextArea();
+        globalMessageArea.setEditable(false);
+        globalMessageArea.setPrefSize(SizeDelta, 140);
+        globalMessageArea.setStyle("-fx-font-family: monospace; -fx-control-inner-background: #222; -fx-text-fill: white;");
+// Position below the map (map top at 40, plus viewport height, plus margin)
+        int messageAreaY = 40 + viewportHeight + 90;
+        globalMessageArea.setLayoutX(140);
+        globalMessageArea.setLayoutY(messageAreaY);
+        gamePane.getChildren().add(globalMessageArea);
+        refreshGlobalMessages();
+
+        EvaLabel globalLabel = new EvaLabel("Global Messages:");
+        globalLabel.SetPosition(140, messageAreaY - 20);
+        globalLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold;");
+        gamePane.getChildren().add(globalLabel);
+
+
         EvaButton DebugButton = createDebugButton("Debug");
         EvaButton WeaponButton = createNewWeaponButton("New Weapon");
         gamePane.getChildren().add(DebugButton);
@@ -522,6 +542,17 @@ public class GameInterface {
     }
 
 
+    private void updateTurnIndicator() {
+        if (TurnOrderLabel == null) return;
+        boolean isMyTurn = CurrentPlayer != null && CurrentState != null && CurrentPlayer.equals(CurrentState.Player);
+        if (isMyTurn) {
+            // Your turn: bright green background
+            TurnOrderLabel.setStyle("-fx-background-color: lightgreen; -fx-padding: 5px; -fx-border-color: black; -fx-border-width: 2px; -fx-font-size: 14px; -fx-font-weight: bold;");
+        } else {
+            // Not your turn: neutral gray
+            TurnOrderLabel.setStyle("-fx-background-color: lightgray; -fx-padding: 5px; -fx-border-color: black; -fx-border-width: 2px; -fx-font-size: 14px; -fx-font-weight: bold;");
+        }
+    }
 
     private void UpdateSwapLabel() {
         String s = "";
@@ -539,8 +570,31 @@ public class GameInterface {
        swapWing = null;
        swapHand = null;
     }
+    private void addGlobalMessage(String fullMsg) {
+        if (CurrentState == null) return;
+        if (CurrentState.GlobalMessages == null)
+            CurrentState.GlobalMessages = new ArrayList<>();
+        CurrentState.GlobalMessages.add(fullMsg);
+        while (CurrentState.GlobalMessages.size() > 7) {
+            CurrentState.GlobalMessages.remove(0); // remove oldest
+        }
+
+        refreshGlobalMessages();
+        WriteToLogString("GLOBAL: " + fullMsg);
+    }
 
 
+    private void refreshGlobalMessages() {
+        if (globalMessageArea == null || CurrentState == null) return;
+        globalMessageArea.clear();
+        WriteToLogString("clear global");
+        if (CurrentState.GlobalMessages != null) {
+            for (String msg : CurrentState.GlobalMessages) {
+                globalMessageArea.appendText(msg + "\n");
+                WriteToLogString("adding text");
+            }
+        }
+    }
     private void SetUpCurrentOutfitLabel(Evangelion eva) {
         StringBuilder s = new StringBuilder("Right Hand - ");
         if (eva.getRightHandItem() != null) s.append(eva.getRightHandItem().Name);
@@ -1902,8 +1956,9 @@ public class GameInterface {
     }
 
     private DisplaySubSpace createGMScreenScene() {
-        DisplaySubSpace DMScreen = new DisplaySubSpace(860, 430, 500, 500, SizeDelta+100);
+        DisplaySubSpace DMScreen = new DisplaySubSpace(1000, 200, 600, 1000, SizeDelta+100);
         gamePane.getChildren().add(DMScreen);
+        DMScreen.getPane().setStyle("-fx-background-color: lightgray;");
         List<EvaButton> dmbuttonlist = new ArrayList<>();
         dmbuttonlist.add(createDMButton("None"));
         dmbuttonlist.add(createDMButton("AutoSetUp"));
@@ -1995,8 +2050,6 @@ public class GameInterface {
         GMEffectExpirationCondition.setLayoutX(x + dx+dx2+25);
         GMEffectExpirationCondition.setLayoutY(y);
 
-
-
         EvaLabel rollingLabel = new EvaLabel("Roll");
         EvaLabel d = new EvaLabel("d");
         x = x+dx*5;
@@ -2022,7 +2075,7 @@ public class GameInterface {
                 int dice = 0;
                 for (int k = 0; k < Integer.parseInt(Dice.getText()); k++) {
                     dice += RandomGenerator.nextInt(1, Integer.parseInt(Dice2.getText())+1);
-            }
+                }
                 rollingLabel.setText(""+dice);
             }
         });
@@ -2056,7 +2109,7 @@ public class GameInterface {
         GMCostDoom.setLayoutY(y);
 
         y+=dy;
-        DMScreen.getPane().getChildren().addAll(
+       DMScreen.getPane().getChildren().addAll(
                 rollingLabel, Dice, Dice2, roll, d,
                 nameLabel, GMEffectName, fogLabel, GMFog,
                 accuracyLabel, GMEffectAccuracy, standLabel, GMStand, damageLabel, GMDamage,
@@ -2074,10 +2127,585 @@ public class GameInterface {
         );
 
 
+        // ===== NEW: GM Console =====
+        int y1 = 550;
+        int x1 = 100;
+        // Output area
+        gmConsoleOutput = new TextArea();
+        gmConsoleOutput.setPrefSize(350, 100);
+        gmConsoleOutput.setEditable(false);
+        gmConsoleOutput.setLayoutX(x1);
+        gmConsoleOutput.setLayoutY(y1);
+        gmConsoleOutput.setStyle("-fx-font-family: monospace;");
+        y1 += 110; // height + spacing
+
+        // Input field
+        TextField gmConsoleInput = new TextField();
+        gmConsoleInput.setPrefWidth(250);
+        gmConsoleInput.setLayoutX(x1);
+        gmConsoleInput.setLayoutY(y1);
+        gmConsoleInput.setPromptText("Enter command...");
+
+        // Execute button
+        EvaButton executeButton = new EvaButton("Execute");
+        executeButton.setPrefWidth(50);
+        executeButton.setPrefHeight(20);
+        executeButton.setLayoutX(x1 + 260);
+        executeButton.setLayoutY(y1);
+
+        // Add all to pane
+        DMScreen.getPane().getChildren().addAll(gmConsoleOutput, gmConsoleInput, executeButton);
+
+        // Action handlers
+        executeButton.setOnAction(event -> {
+            String command = gmConsoleInput.getText();
+            if (!command.isBlank()) {
+                processGMCommand(command);
+                gmConsoleInput.clear();
+            }
+        });
+
+        gmConsoleInput.setOnAction(event -> {
+            String command = gmConsoleInput.getText();
+            if (!command.isBlank()) {
+                processGMCommand(command);
+                gmConsoleInput.clear();
+            }
+        });
+        // ===== End of GM Console =====
+
 
         return DMScreen;
     }
 
+    private void appendToConsole(String text) {
+        if (gmConsoleOutput != null) {
+            gmConsoleOutput.appendText(text);
+            WriteToLogString("CONSOLE: " + text.replace("\n", ""));
+        }
+    }
+
+    private void processGMCommand(String command) {
+        WriteToLogString("GM Command: " + command);
+        if (gmConsoleOutput == null) return;
+        appendToConsole("> " + command + "\n");
+        String[] parts = command.trim().split("\\s+");
+        if (parts.length == 0) {
+            appendToConsole("Empty command.\n");
+            return;
+        }
+
+        String cmd = parts[0].toLowerCase();
+
+        try {
+            switch (cmd) {
+                case "entomb":
+                    if (ClickedUnit == null) {
+                        appendToConsole("No unit selected. Click a unit first.\n");
+                        break;
+                    }
+                    if (!(ClickedUnit instanceof Evangelion eva)) {
+                        appendToConsole("Selected unit is not an Evangelion.\n");
+                        break;
+                    }
+                    if (eva.state.Doom < 2) {
+                        appendToConsole("Not enough Doom (requires 2).\n");
+                        break;
+                    }
+                    SectorType wall = findSectorType("Wall");
+                    if (wall == null) {
+                        appendToConsole("Wall sector type not found.\n");
+                        break;
+                    }
+                    // entomb adjacent sectors (8 directions)
+                    int count = 0;
+                    for (int dx = -1; dx <= 1; dx++) {
+                        for (int dy = -1; dy <= 1; dy++) {
+                            if (dx == 0 && dy == 0) continue;
+                            int nx = eva.getX() + dx;
+                            int ny = eva.getY() + dy;
+                            if (GameBoard.OnBoard(nx, ny)) {
+                                GameBoard.getSector(nx, ny).setType(wall);
+                                count++;
+                            }
+                        }
+                    }
+                    eva.state.Doom -= 2;
+                    GameBoard.UpdateBoardColors();
+                    UpdateUnitLabels();
+                    appendToConsole("Entombed " + count + " sectors around " + eva.getPlayerName() + ". Doom now: " + eva.state.Doom + "\n");
+                    addGlobalMessage(eva.getPlayerName()+" got Entombed, Remaining doom: "+eva.state.Doom);
+                    break;
+
+                case "entomb all":
+                    wall = findSectorType("Wall");
+                    if (wall == null) {
+                        appendToConsole("Wall sector type not found.\n");
+                        break;
+                    }
+                    int totalAffected = 0;
+                    for (Evangelion eva : EvangelionList) {
+                        if (eva.state.Doom >= 2) {
+                            int cnt = 0;
+                            for (int dx = -1; dx <= 1; dx++) {
+                                for (int dy = -1; dy <= 1; dy++) {
+                                    if (dx == 0 && dy == 0) continue;
+                                    int nx = eva.getX() + dx;
+                                    int ny = eva.getY() + dy;
+                                    if (GameBoard.OnBoard(nx, ny)) {
+                                        GameBoard.getSector(nx, ny).setType(wall);
+                                        cnt++;
+                                    }
+                                }
+                            }
+                            eva.state.Doom -= 2;
+                            totalAffected++;
+                            appendToConsole(eva.getPlayerName() + " entombed " + cnt + " sectors. Doom now: " + eva.state.Doom + "\n");
+                        } else {
+                            appendToConsole(eva.getPlayerName() + " skipped (insufficient doom).\n");
+                        }
+                    }
+                    if (totalAffected > 0) {
+                        GameBoard.UpdateBoardColors();
+                        UpdateUnitLabels();
+                    }
+                    appendToConsole("Entomb all completed. Affected " + totalAffected + " Evangelions.\n");
+                    break;
+                case "draw":
+                    if (parts.length < 2) {
+                        appendToConsole("Usage: Draw [SectorType]\n");
+                        break;
+                    }
+                    if (ClickedSector == null) {
+                        appendToConsole("No sector selected. Click a sector first.\n");
+                        break;
+                    }
+                    String typeName = parts[1];
+                    SectorType newType = findSectorType(typeName);
+                    if (newType == null) {
+                        appendToConsole("Unknown sector type: " + typeName + "\n");
+                        break;
+                    }
+                    ClickedSector.setType(newType);
+                    GameBoard.UpdateBoardColors();
+                    appendToConsole("Sector " + ClickedSector.getLocation() + " changed to " + newType.Name + "\n");
+                    break;
+
+                case "changesec":
+                    if (parts.length < 3) {
+                        appendToConsole("Usage: ChangeSec [SectorType] [x,y]\n");
+                        break;
+                    }
+                    typeName = parts[1];
+                    newType = findSectorType(typeName);
+                    if (newType == null) {
+                        appendToConsole("Unknown sector type: " + typeName + "\n");
+                        break;
+                    }
+                    String coordStr = parts[2];
+                    int[] coords = parseCoordinates(coordStr);
+                    if (coords == null) {
+                        appendToConsole("Invalid coordinates: " + coordStr + ". Use format x,y\n");
+                        break;
+                    }
+                    int x = coords[0], y = coords[1];
+                    if (!GameBoard.OnBoard(x, y)) {
+                        appendToConsole("Coordinates out of board.\n");
+                        break;
+                    }
+                    Sector target = GameBoard.getSector(x, y);
+                    target.setType(newType);
+                    GameBoard.UpdateBoardColors();
+                    appendToConsole("Sector (" + x + "," + y + ") changed to " + newType.Name + "\n");
+                    break;
+
+                case "setfog":
+                    if (parts.length < 2) {
+                        appendToConsole("Usage: SetFog [int]\n");
+                        break;
+                    }
+                    int fog = Integer.parseInt(parts[1]);
+                    FogNumber = fog;
+                    GMFog.setText(String.valueOf(fog));
+                    UpdateVisible(); // refresh unit/object visibility
+                    appendToConsole("Fog set to " + fog + "\n");
+                    break;
+                case "checkdoom":
+                    if (ClickedUnit == null) {
+                        appendToConsole("No unit selected. Click a unit first.\n");
+                        break;
+                    }
+                    if (!(ClickedUnit instanceof Evangelion eva)) {
+                        appendToConsole("Selected unit is not an Evangelion.\n");
+                        break;
+                    }
+                    appendToConsole("Doom: " + eva.state.Doom + "\n");
+                    break;
+
+                case "checkfate":
+                    if (ClickedUnit == null) {
+                        appendToConsole("No unit selected. Click a unit first.\n");
+                        break;
+                    }
+                    if (!(ClickedUnit instanceof Evangelion eva)) {
+                        appendToConsole("Selected unit is not an Evangelion.\n");
+                        break;
+                    }
+                    appendToConsole("Fate: " + eva.state.Fate + "\n");
+                    break;
+                case "discardobject":
+                    if (ClickedSector == null) {
+                        appendToConsole("No sector selected. Click a sector first.\n");
+                        break;
+                    }
+                    List<WeaponObject> objects = getItemsOnLocation(ClickedSector);
+                    if (objects.isEmpty()) {
+                        appendToConsole("No objects on that sector.\n");
+                        break;
+                    }
+                    for (WeaponObject obj : objects) {
+                        discard(obj);
+                    }
+                    appendToConsole("Discarded " + objects.size() + " object(s) from sector (" + ClickedSector.x + "," + ClickedSector.y + ").\n");
+                    break;
+                case "move":
+                    if (parts.length < 2) {
+                        appendToConsole("Usage: move [playername]\n");
+                        break;
+                    }
+                    if (ClickedSector == null) {
+                        appendToConsole("No sector selected. Click a target sector first.\n");
+                        break;
+                    }
+                    String targetPlayer = parts[1];
+                    BaseUnit unitToMove = null;
+                    for (BaseUnit u : UnitsList) {
+                        if (u.getPlayerName().equals(targetPlayer)) {
+                            unitToMove = u;
+                            break;
+                        }
+                    }
+                    if (unitToMove == null) {
+                        appendToConsole("Player '" + targetPlayer + "' not found.\n");
+                        break;
+                    }
+                    int tx = ClickedSector.x;
+                    int ty = ClickedSector.y;
+                    if (!GameBoard.OnBoard(tx, ty)) {
+                        appendToConsole("Target sector out of bounds.\n");
+                        break;
+                    }
+                    BaseUnit occupying = getUnit(tx, ty);
+                    if (occupying != null && occupying != unitToMove) {
+                        appendToConsole("Sector already occupied by " + occupying.getPlayerName() + ".\n");
+                        break;
+                    }
+                    unitToMove.setX(tx);
+                    unitToMove.setY(ty);
+                    UpdatePositions();
+                    UpdateVisible();
+                    appendToConsole("Moved " + targetPlayer + " to (" + tx + "," + ty + ").\n");
+                    break;
+                case "addhealth":
+                    if (parts.length < 2) {
+                        appendToConsole("Usage: addhealth [amount] (positive to heal, negative to damage)\n");
+                        break;
+                    }
+                    if (ClickedUnit == null) {
+                        appendToConsole("No unit selected. Click a unit first.\n");
+                        break;
+                    }
+                    try {
+                        int amount = Integer.parseInt(parts[1]);
+                        if (ClickedUnit instanceof Evangelion eva) {
+                            if (amount > 0) {
+                                // Heal
+                                int newToughness = Math.min(eva.getMaxToughness(), eva.state.toughness + amount);
+                                eva.state.toughness = newToughness;
+                                appendToConsole("Healed " + amount + ". Toughness now: " + eva.getToughness() + "/" + eva.getMaxToughness() + "\n");
+                            } else if (amount < 0) {
+                                // Damage
+                                eva.dealDamage(-amount);
+                                appendToConsole("Dealt " + (-amount) + " damage. Toughness now: " + eva.getToughness() + "/" + eva.getMaxToughness() + "\n");
+                            } else {
+                                appendToConsole("No change (amount = 0).\n");
+                            }
+                        } else if (ClickedUnit instanceof Angel angel) {
+                            if (amount > 0) {
+                                int newToughness = Math.min(angel.getMaxToughness(), angel.state.toughness + amount);
+                                angel.state.toughness = newToughness;
+                                appendToConsole("Healed " + amount + ". Toughness now: " + angel.getToughness() + "/" + angel.getMaxToughness() + "\n");
+                            } else if (amount < 0) {
+                                angel.dealDamage(-amount);
+                                appendToConsole("Dealt " + (-amount) + " damage. Toughness now: " + angel.getToughness() + "/" + angel.getMaxToughness() + "\n");
+                            } else {
+                                appendToConsole("No change (amount = 0).\n");
+                            }
+                        } else {
+                            appendToConsole("Selected unit is not an Evangelion or Angel.\n");
+                            break;
+                        }
+                        UpdateUnitLabels(); // refresh displayed stats
+                    } catch (NumberFormatException e) {
+                        appendToConsole("Invalid number format.\n");
+                    }
+                    break;
+                case "onmissdrama":
+                    if (parts.length >= 2) {
+                        String arg = parts[1].toLowerCase();
+                        if (arg.equals("on")) {
+                            CurrentState.OnMissDrama = true;
+                        } else if (arg.equals("off")) {
+                            CurrentState.OnMissDrama = false;
+                        } else {
+                            appendToConsole("Usage: onmissdrama [on/off] (if omitted, toggles)\n");
+                            break;
+                        }
+                    } else {
+                        // toggle
+                        CurrentState.OnMissDrama = !CurrentState.OnMissDrama;
+                    }
+                    appendToConsole("OnMissDrama is now " + (CurrentState.OnMissDrama ? "ON" : "OFF") + "\n");
+                    break;
+                case "unload":
+                    if (parts.length < 4) {
+                        appendToConsole("Usage: unload (right/left) [ammoAmount] [doomAmount]\n");
+                        break;
+                    }
+                    if (ClickedUnit == null) {
+                        appendToConsole("No unit selected. Click an Evangelion first.\n");
+                        break;
+                    }
+                    if (!(ClickedUnit instanceof Evangelion eva)) {
+                        appendToConsole("Selected unit is not an Evangelion.\n");
+                        break;
+                    }
+                    String hand = parts[1].toLowerCase();
+                    Weapon weapon;
+                    if (hand.equals("right")) {
+                        weapon = eva.getRightHandItem();
+                    } else if (hand.equals("left")) {
+                        weapon = eva.getLeftHandItem();
+                    } else {
+                        appendToConsole("Invalid hand. Use 'right' or 'left'.\n");
+                        break;
+                    }
+                    if (weapon == null || weapon.isFree()) {
+                        appendToConsole("No weapon in that hand.\n");
+                        break;
+                    }
+                    try {
+                        int ammoChange = Integer.parseInt(parts[2]);
+                        int doomChange = Integer.parseInt(parts[3]);
+
+                        int newDoom = eva.state.Doom - doomChange;
+                        if (newDoom < 0) {
+                            appendToConsole("Not Enough Doom");
+                            break;
+                        }
+                        eva.state.Doom = Math.max(newDoom, 0);
+                        // Update ammo (prevent negative)
+                        int newAmmo = weapon.getCurrentAmmo() - ammoChange;
+                        weapon.CurrentAmmo = (Math.max(newAmmo, 0));
+                        UpdateUnitLabels();
+                        UpdateCurrentLables();
+                        appendToConsole("Unloaded: " + hand + " weapon ammo now " + weapon.getCurrentAmmo() +
+                                ", Doom now " + eva.state.Doom + "\n");
+                        addGlobalMessage("Angel made "+eva.getPlayerName()+"'s weapon unload extra ammo, Remaining Doom: "+eva.state.Doom);
+                    } catch (NumberFormatException e) {
+                        appendToConsole("Invalid number format.\n");
+                    }
+                    break;
+                case "destroyweapon":
+                    if (parts.length < 2) {
+                        appendToConsole("Usage: destroyweapon (left/right)\n");
+                        break;
+                    }
+                    if (ClickedUnit == null) {
+                        appendToConsole("No unit selected. Click an Evangelion first.\n");
+                        break;
+                    }
+                    if (!(ClickedUnit instanceof Evangelion eva)) {
+                        appendToConsole("Selected unit is not an Evangelion.\n");
+                        break;
+                    }
+                    if (eva.state.Doom < 2) {
+                        appendToConsole("Not enough Doom (requires 2).\n");
+                        break;
+                    }
+                    String handDir = parts[1].toLowerCase();
+                    Weapon weaponToDestroy;
+                    if (handDir.equals("right")) {
+                        weaponToDestroy = eva.getRightHandItem();
+                    } else if (handDir.equals("left")) {
+                        weaponToDestroy = eva.getLeftHandItem();
+                    } else {
+                        appendToConsole("Invalid hand. Use 'left' or 'right'.\n");
+                        break;
+                    }
+                    if (weaponToDestroy == null || weaponToDestroy.isFree()) {
+                        appendToConsole("No weapon in that hand.\n");
+                        break;
+                    }
+                    // Remove the weapon from the unit's inventory (handles cleanup)
+                    eva.removeWeapon(weaponToDestroy);
+                    // Deduct Doom
+                    eva.state.Doom -= 2;
+                    // Refresh AT‑Powers menu (important for abilities tied to weapons)
+                    addGlobalMessage("Angel Destroyed Weapon of "+eva.getPlayerName()+", Remaining Doom: "+eva.state.Doom);
+                    recreateATPowersMenu(eva, "Weapon destroyed via DM command");
+                    // Update UI labels and current weapon selection
+                    UpdateUnitLabels();
+                    UpdateCurrentLables();
+                    WeaponCheck(); // ensure the currently selected weapon is valid
+                    appendToConsole("Destroyed " + handDir + " weapon of " + eva.getPlayerName() + ". Doom now: " + eva.state.Doom + "\n");
+                    break;
+                case "DMmsg":
+                    if (parts.length < 2) {
+                        appendToConsole("Usage: msg [text...]\n");
+                        break;
+                    }
+                    String message = String.join(" ", Arrays.copyOfRange(parts, 1, parts.length));
+                    addGlobalMessage("DM: " + message);
+                    appendToConsole("Message sent.\n");
+                    break;
+                case "msg":
+                    if (parts.length < 2) {
+                        appendToConsole("Usage: msg [text...]\n");
+                        break;
+                    }
+                    String message1 = String.join(" ", Arrays.copyOfRange(parts, 1, parts.length));
+                    addGlobalMessage(message1);
+                    appendToConsole("Message sent.\n");
+                    break;
+                case "clear":
+                    if (CurrentState != null && CurrentState.GlobalMessages != null) {
+                        CurrentState.GlobalMessages.clear();
+                        refreshGlobalMessages();
+                    }
+                    appendToConsole("Global messages cleared.\n");
+                    break;
+                case "effects":
+                    if (ClickedUnit == null) {
+                        appendToConsole("No unit selected. Click a unit first.\n");
+                        break;
+                    }
+                    if (ClickedUnit instanceof Evangelion eva) {
+                    List<StateEffect> effects = eva.state.StateEffects;
+                    if (effects == null || effects.isEmpty()) {
+                        appendToConsole("No effects on this unit.\n");
+                        break;
+                    }
+                    appendToConsole("Effects on " + ClickedUnit.getPlayerName() + ":\n");
+                    for (StateEffect eff : effects) {
+                        appendToConsole("  - " + eff.Name + " (expires: " + eff.Condition + ")\n");
+                    }} else {appendToConsole("Not evangelion unit.\n");}
+                    break;
+                case "adddoom":
+                    if (parts.length < 2) {
+                        appendToConsole("Usage: adddoom [amount] (can be negative)\n");
+                        break;
+                    }
+                    if (ClickedUnit == null) {
+                        appendToConsole("No unit selected. Click a unit first.\n");
+                        break;
+                    }
+                    if (!(ClickedUnit instanceof Evangelion eva)) {
+                        appendToConsole("Selected unit is not an Evangelion.\n");
+                        break;
+                    }
+                    try {
+                        int amount = Integer.parseInt(parts[1]);
+                        eva.state.Doom += amount;
+                        UpdateUnitLabels(); // refresh displayed stats
+                        appendToConsole("Doom updated to: " + eva.state.Doom + "\n");
+                    } catch (NumberFormatException e) {
+                        appendToConsole("Invalid number format.\n");
+                    }
+                    break;
+
+                case "addfate":
+                    if (parts.length < 2) {
+                        appendToConsole("Usage: addfate [amount] (can be negative)\n");
+                        break;
+                    }
+                    if (ClickedUnit == null) {
+                        appendToConsole("No unit selected. Click a unit first.\n");
+                        break;
+                    }
+                    if (!(ClickedUnit instanceof Evangelion eva)) {
+                        appendToConsole("Selected unit is not an Evangelion.\n");
+                        break;
+                    }
+                    try {
+                        int amount = Integer.parseInt(parts[1]);
+                        eva.state.Fate += amount;
+                        UpdateUnitLabels();
+                        appendToConsole("Fate updated to: " + eva.state.Fate + "\n");
+                    } catch (NumberFormatException e) {
+                        appendToConsole("Invalid number format.\n");
+                    }
+                    break;
+
+                case "createweapon":
+                    if (parts.length < 2) {
+                        appendToConsole("Usage: CreateWeapon [weaponname]\n");
+                        break;
+                    }
+                    if (ClickedSector == null) {
+                        appendToConsole("No sector selected. Click a sector first.\n");
+                        break;
+                    }
+                    String weaponName = parts[1];
+                    int x1 = ClickedSector.x;
+                    int y1 = ClickedSector.y;
+                    try {
+                        Weapon weapon1 = EvaSaveUtil.ReadStringWeapon(weaponName);
+                        weapon1.Reload();
+                        createWeaponObject(weapon1, x1, y1);
+                        appendToConsole("Weapon '" + weaponName + "' created at (" + x1 + "," + y1 + ")\n");
+                    } catch (IOException e) {
+                        appendToConsole("Error reading weapon: " + e.getMessage() + "\n");
+                    }
+                    break;
+
+                default:
+                    appendToConsole("Unknown command: " + cmd + "\n");
+                    break;
+            }
+        } catch (NumberFormatException e) {
+            appendToConsole("Invalid number format.\n");
+        } catch (Exception e) {
+            appendToConsole("Error: " + e.getMessage() + "\n");
+            WriteToLogString("GM Command exception: " + e);
+        }
+    }
+
+    private SectorType findSectorType(String name) {
+        for (SectorType type : SectorTypesList) {
+            if (type.Name.equalsIgnoreCase(name)) {
+                return type;
+            }
+        }
+        return null;
+    }
+
+    private int[] parseCoordinates(String s) {
+        String[] parts = s.split(",");
+        if (parts.length != 2) return null;
+        try {
+            int x = Integer.parseInt(parts[0].trim());
+            int y = Integer.parseInt(parts[1].trim());
+            return new int[]{x, y};
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+
+
+    private String writePos(int x, int y) {
+        return  "("+x+","+y+")";
+    }
 
     private EvaButton createDMButton(String name) {
         EvaButton button = new EvaButton(name);
@@ -2800,12 +3428,16 @@ public class GameInterface {
             }
             if (ShouldEndRound()) EndRound();
             }
+            refreshGlobalMessages();
+            WriteToLogString("Global messages size - check 1: "+CurrentState.GlobalMessages.size());
             SaveToGameState();
             EvaSaveUtil.SaveGameState(savegamepath+"currentgame.dat", CurrentState);
             if (amogus>5) amogus=0; else amogus++;
             WriteToLogString("Created backup = currentgame"+amogus+".dat");
             EvaSaveUtil.SaveGameState(savebackuppath+"currentgame"+amogus+".dat", CurrentState);
+            WriteToLogString("Global messages size - check 2: "+CurrentState.GlobalMessages.size());
             UpdateTurn();
+            WriteToLogString("Global messages size - check 3: "+CurrentState.GlobalMessages.size());
             WriteToLogString("End Turn finished");
             WriteLogs("TURN END");
         }
@@ -3505,16 +4137,16 @@ public class GameInterface {
                 WriteToLogString("Queue sizes, Attack: "+CurrentState.AttackQueueList.size()+" player: "+CurrentState.GameQueueList.size());
                 }
                 assert DefendingUnit != null;
+                addGlobalMessage("Defender: "+DefendingUnit.getPlayerName());
                 boolean passed = false;
                 if (DefendingUnit.UsedGuard()) {
-                    WriteToLogString("Using Guard");
                     int DefenceTest = 100;
                     try {
                     DefenceTest = Integer.parseInt(DefenceTestRollLabel.getText()); }
                     catch (NumberFormatException ignore){}
                     int TargetNumber = DefendingUnit.getReflexes();
                     passed = DefenceTest < TargetNumber;
-                    WriteToLogString("Guard Success = "+passed);
+                    addGlobalMessage("Guard roll: "+DefenceTest+"Guard Success = "+passed);
                     DefendingUnit.GuardTickEffect();
                 } else if ((CAttack.Weapon.getArea() > -1 || CAttack.Weapon.getLine()) && CAttack.Missed()) {
                     passed = true;
@@ -3538,26 +4170,43 @@ public class GameInterface {
                 }
                 if (!passed) {
                    if (CAttack.getTossDistance() > 0 && !CAttack.getDirection().equals(Attack.TossDirection.NONE)) {
-                       int maxReach = CAttack.toss;
+                       WriteToLogString("Tossing with distance "+CAttack.getTossDistance());
+                       int maxReach = CAttack.getTossDistance();
                        int unitX = CAttack.DefenderX;
                        int unitY = CAttack.DefenderY;
+                       WriteToLogString("Original position of unit: "+writePos(unitX,unitY));
                        int dx = - CAttack.AttackerX + unitX;
-                       int dy = -CAttack.AttackerX + unitY;
+                       int dy = -CAttack.AttackerY + unitY;
+                       WriteToLogString("dx and dy: "+writePos(dx,dy));
                        int dxStep = Integer.signum(dx);
                        int dyStep = Integer.signum(dy);
+                       WriteToLogString("Step: "+writePos(dxStep,dyStep));
                        int endX = unitX + dxStep * maxReach;
                        int endY = unitY + dyStep * maxReach;
+                       WriteToLogString("Original end "+writePos(endX,endY));
                        while (!GameBoard.OnBoard(endX, endY)) {
                            endX -= dxStep;
                            endY -= dyStep;
                        }
+                       WriteToLogString("End after onboard check: "+writePos(endX,endY));
+                       while(unitX != endX || unitY != endY) {
+                           if (!GameBoard.getSector(unitX+dxStep, unitY+dyStep).getType().CanPassThrough) {
+                               WriteToLogString("Wall detected on "+writePos(unitX+dxStep,unitY+dyStep));
+                               break;
+                           }
+                           unitX+=dxStep;
+                           unitY+=dyStep;
+                       }
+                       endX = unitX;
+                       endY = unitY;
+                       addGlobalMessage("Finale end position "+writePos(endX,endY));
                        DefendingUnit.setX(endX);
                        DefendingUnit.setY(endY);
                        UpdatePositions();
                    }
-                   WriteToLogString("Dealing damage, HP before: "+DefendingUnit.getToughness());
+                    addGlobalMessage("Dealing damage, HP before: "+DefendingUnit.getToughness());
                    DefendingUnit.hurt(CAttack);
-                   WriteToLogString("HP After attack damage: "+DefendingUnit.getToughness());
+                    addGlobalMessage("HP After attack damage: "+DefendingUnit.getToughness());
 
                    DefendingUnit.ConditionTickEffect(StateEffect.ExpirationCondition.POTENTIAL);
                    for (StateEffect effect : CAttack.OnHitEffect) {
@@ -3566,7 +4215,7 @@ public class GameInterface {
                    DefendingUnit.UpdateCalcWeapon(CurrentChosenWeapon);
                 }
                 if (DefendingUnit.getToughness() <= 0) {
-                    WriteToLogString("Wound dealt");
+                    addGlobalMessage("Wound dealt");
                     CurrentState.Phase = "Wound";
                     CurrentState.NextPlayer = getPlayerFromUnit(DefendingUnit);
                 } else {
@@ -3626,15 +4275,15 @@ public class GameInterface {
                                  Integer.parseInt(AttackRollLabel.getText()), AttackingUnit.getX(),
                                  AttackingUnit.getY(), attacktarget.getX(), attacktarget.getY(),
                                  CurrentChosenWeapon.getPenetration()+pen, CurrentChosenWeapon, OnHitEffect);
-                         WriteToLogString("Creating Attack of "+NextAttack.Attacker+" attacking "
+                         addGlobalMessage("Creating Attack of "+NextAttack.Attacker+" attacking "
                                  +NextAttack.Defender+" with damage "
                                  +NextAttack.Damage+" and penetration "
-                                 +NextAttack.Penetration+" and test"
-                                 +NextAttack.Test+ " and it missed ="+NextAttack.Missed());
+                                 +NextAttack.Penetration+" and test "
+                                 +NextAttack.Test+" and it missed = "+NextAttack.Missed());
                          if (isToss()) {
                              NextAttack.toss = RandomGenerator.nextInt(1, 3)+RandomGenerator.nextInt(1, 3);
                              NextAttack.direction = Attack.figureoutDirection(AttackingUnit.getX(), AttackingUnit.getY(), attacktarget.getX(), attacktarget.getY());
-                             WriteToLogString("Attack is Toss");
+                             addGlobalMessage("Attack is Toss");
                          }
                          WriteToLogString("Attack: at = "+NextAttack.Attacker+" def = "+NextAttack.Defender+" missed ="+NextAttack.Missed());
                    /*      if (attacktarget instanceof ChazaqielSummon) {
@@ -3879,11 +4528,6 @@ public class GameInterface {
             Weapons.add(w.getWeapon());
         }
         CurrentState.Weapons = Weapons;
-   //     List<ChazaqielSummonState> CHSS = new ArrayList<>();
-    //    for (ChazaqielSummon w : SummonList) {
-   //         CHSS.add(w.state);
-  //      }
-  //      CurrentState.SummonList = CHSS;
         i = 0;
         for (Angel angel : AngelList) {
             CurrentState.AngelList.set(i, angel.state);
@@ -3931,6 +4575,7 @@ public class GameInterface {
         }
         this.Battlefield = CurrentState.Field;
         fromBattlefieldToBoardSectors();
+        refreshGlobalMessages();
     }
 
     public WeaponObject createWeaponObject(Weapon weapon, int x, int y) {
@@ -4003,6 +4648,7 @@ public class GameInterface {
     private void UpdateTurn() throws IOException, ClassNotFoundException {
         String s = EvaSaveUtil.getSaveGamePath();
         CurrentState = EvaSaveUtil.ReadGameState(s.replace("\\", "/")+"currentgame.dat");
+
         if (CurrentState.GameQueueList != null && !CurrentState.GameQueueList.isEmpty()) {
             CurrentState.Player = CurrentState.GameQueueList.get(0);
             List<String> players = new ArrayList<>();
@@ -4020,6 +4666,7 @@ public class GameInterface {
         }
         CurrentState.NextPlayer = "GM";
         TurnOrderLabel.setText("Player "+CurrentState.Player+" "+CurrentState.Phase+" "+CurrentAction);
+        updateTurnIndicator();
         ReadFromGameState();
         SetUpTurn();
         ResetAction();
@@ -4390,7 +5037,7 @@ public class GameInterface {
         // Create viewport container with fixed size
         SizeDelta = Math.min(x * 20, 800);
         viewport.setPrefSize(SizeDelta, Math.min(y * 20, 600));
-
+        viewportHeight = (int) viewport.getPrefHeight();
         viewport.setStyle("-fx-background-color: lightgray;");
 
         // Add battle board to viewport
@@ -4560,7 +5207,7 @@ public class GameInterface {
                             } catch (IOException ignored) {}
                         }
                     }
-                    else if (CurrentAction.equals("Move") && ClickedSector.type.CanMoveTo && ClickedUnit == null && (CurrentUnit.getStamina() > 0 || (CurrentSubAction.equals("Maneuver") && (((Evangelion) getCurrentUnit()).getNameEffects().contains("FeintManeuver") && !((Evangelion) getCurrentUnit()).getNameEffects().contains("FeintManeuverUsed")))) &&
+                    else if (CurrentAction.equals("Move") &&  ClickedUnit == null && (ClickedSector.type.CanMoveTo || CurrentUnit instanceof Angel)  && (CurrentUnit.getStamina() > 0 || (CurrentSubAction.equals("Maneuver") && (((Evangelion) getCurrentUnit()).getNameEffects().contains("FeintManeuver") && !((Evangelion) getCurrentUnit()).getNameEffects().contains("FeintManeuverUsed")))) &&
                             ((CurrentSubAction.equals("Take Cover") && GameBoard.CoverCheck(ClickedSector))
                                     || (CurrentSubAction.equals("Reposition") && GameBoard.isPossibleReachLocation(ClickedSector, CurrentUnit, 3))
                                     || (CurrentSubAction.equals("Maneuver") && GameBoard.isPossibleReachLocation(ClickedSector, CurrentUnit, 1))
@@ -5200,6 +5847,7 @@ public class GameInterface {
             @Override
             public void handle(ActionEvent event) {
                 CurrentPlayer = field.getText();
+                updateTurnIndicator();
                 ResetAction();
                 ResetArrow();
                 ApplyPlayer();

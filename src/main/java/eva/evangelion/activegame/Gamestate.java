@@ -28,6 +28,7 @@ public class Gamestate implements Serializable {
     public String NextPlayer;
     public Battlefield Field;
     public boolean OnMissDrama = false;
+    public List<String> GlobalMessages = new ArrayList<>();
 
     public List<String> GameQueueList;
     public List<Attack> AttackQueueList;

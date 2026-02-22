@@ -8,12 +8,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class AngelType {
-    public final int BaseAccuracy = 65; //65
+    public final int BaseAccuracy = 70; //65
     public final int BaseMeleeStrength = 4; //4
     public final int BaseRangedStrength = 4; //4
     public final int BasePenetration = 2; //1
     public final int BaseToughness = 28; //20
-    public final int BaseArmor = 5; //3
+    public final int BaseArmor = 6; //3
     public final int BaseReflexes = 25; //25
     public final int BaseSpeed = 3; //3
 
